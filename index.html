@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI·디지털 교육과 글쓰기를 통해 배움의 즐거움을 나누는 곽인아의 소개 페이지" />
+  <title>곽인아 | AI·디지털 교육과 글쓰기</title>
+  <style>
+    :root { --cream:#fffaf0; --paper:#fff; --ink:#173e36; --muted:#52645c; --green:#165b4b; --deep:#0f4037; --soft:#e4eee1; --line:#d9dfcf; --warm:#efd9b4; --shadow:0 18px 45px rgba(34,73,57,.1); }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { min-width:320px; margin:0; overflow-x:hidden; color:var(--ink); background:var(--cream); font-family:"Pretendard","Noto Sans KR","Malgun Gothic",sans-serif; line-height:1.7; }
+    a { color:inherit; }
+    h1,h2,h3,p { margin-top:0; }
+    .page { overflow:hidden; }
+    .glow-cursor { position:fixed; z-index:50; width:300px; height:300px; pointer-events:none; opacity:0; background:radial-gradient(circle,rgba(255,232,156,.25) 0%,rgba(193,225,177,.13) 32%,rgba(193,225,177,0) 72%); border-radius:50%; filter:blur(5px); transform:translate(-50%,-50%); transition:opacity 180ms ease; }
+    .container { width:min(100% - 40px,1060px); margin:0 auto; }
+    .hero { position:relative; display:grid; min-height:min(720px,88vh); place-items:center; overflow:hidden; padding:80px 20px; color:#fffdf5; background:radial-gradient(ellipse at 50% 72%,#1e6654 0%,#12473c 40%,#082c27 100%); text-align:center; }
+    .sky { position:absolute; inset:0; overflow:hidden; pointer-events:none; background-image:radial-gradient(circle at 7% 21%,rgba(255,255,255,.75) 0 1px,transparent 1.5px),radial-gradient(circle at 18% 74%,rgba(255,252,231,.72) 0 1px,transparent 1.5px),radial-gradient(circle at 27% 40%,rgba(255,255,255,.55) 0 1px,transparent 1.5px),radial-gradient(circle at 43% 13%,rgba(255,255,255,.8) 0 1px,transparent 1.5px),radial-gradient(circle at 56% 61%,rgba(255,252,231,.62) 0 1px,transparent 1.5px),radial-gradient(circle at 72% 28%,rgba(255,255,255,.65) 0 1px,transparent 1.5px),radial-gradient(circle at 88% 72%,rgba(255,252,231,.8) 0 1px,transparent 1.5px),radial-gradient(circle at 95% 18%,rgba(255,255,255,.5) 0 1px,transparent 1.5px); }
+    .shooting-star { position:absolute; left:var(--x); top:var(--y); width:var(--length); height:2px; opacity:0; background:linear-gradient(90deg,transparent,#fff7dc 72%,#fff); border-radius:999px; box-shadow:0 0 7px rgba(255,249,219,.8); transform:rotate(var(--angle)); transform-origin:left center; animation:ss-shoot var(--duration) cubic-bezier(.4,0,.7,1) var(--delay) infinite; }
+    .shooting-star::after { position:absolute; top:50%; right:-2px; width:5px; height:5px; background:#fff; border-radius:50%; box-shadow:0 0 12px 4px rgba(255,247,214,.42); content:""; transform:translateY(-50%); }
+    @keyframes ss-shoot { 0% { transform:translate(-12vw,-8vh) rotate(var(--angle)); opacity:0; } 8%,78% { opacity:1; } 100% { transform:translate(112vw,55vh) rotate(var(--angle)); opacity:0; } }
+    .hero-content { position:relative; z-index:1; max-width:820px; }
+    .eyebrow { display:inline-block; margin-bottom:22px; color:#d5e6bd; font-size:.84rem; font-weight:800; letter-spacing:.14em; }
+    h1 { margin-bottom:24px; font-size:clamp(2.35rem,7vw,5.4rem); line-height:1.12; letter-spacing:-.07em; }
+    .hero-copy { max-width:640px; margin:0 auto; color:#fffaf0; font-size:clamp(1.08rem,2.5vw,1.38rem); font-weight:600; word-break:keep-all; }
+    .role-list { display:flex; flex-wrap:wrap; justify-content:center; gap:9px; margin:34px auto 0; padding:0; list-style:none; }
+    .role-list li { padding:8px 14px; color:#f7f4df; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.28); border-radius:999px; font-size:.9rem; font-weight:700; }
+    main { padding:22px 0 88px; }
+    section { padding-top:88px; }
+    .section-kicker { margin-bottom:10px; color:var(--green); font-size:.79rem; font-weight:800; letter-spacing:.13em; }
+    .section-heading { max-width:640px; margin-bottom:42px; font-size:clamp(2rem,4.5vw,3.25rem); line-height:1.18; letter-spacing:-.06em; word-break:keep-all; }
+    .profile { display:grid; grid-template-columns:.9fr 1.1fr; gap:22px; align-items:stretch; }
+    .profile-intro,.profile-facts,.lesson-card { background:var(--paper); border:1px solid var(--line); border-radius:22px; box-shadow:0 8px 28px rgba(34,73,57,.05); }
+    .profile-intro { position:relative; isolation:isolate; overflow:hidden; padding:32px; color:#fffdf5; background:linear-gradient(110deg,#0d3932 0%,#155e4e 36%,#6d8c70 68%,#1a5346 82%,#0d3932 100%); background-size:300% auto; animation:moving-gradient-position 14s ease-in-out infinite alternate; }
+    @keyframes moving-gradient-position { from { background-position:0% 50%; } to { background-position:100% 50%; } }
+    .profile-intro h3 { margin-bottom:14px; font-size:1.35rem; }
+    .profile-intro p { margin-bottom:0; color:#d8eadc; word-break:keep-all; }
+    .animated-content { opacity:1; transform:none; filter:none; }
+    html.ready .animated-content { opacity:0; filter:blur(5px); transform:translateY(18px) scale(.985); transition:opacity 720ms cubic-bezier(.16,1,.3,1),transform 720ms cubic-bezier(.16,1,.3,1),filter 720ms cubic-bezier(.16,1,.3,1); }
+    html.ready .animated-content.is-visible { opacity:1; filter:blur(0); transform:translateY(0) scale(1); }
+    .profile-facts { padding:30px 32px; }
+    .fact + .fact { margin-top:22px; padding-top:22px; border-top:1px solid var(--line); }
+    .fact-label { display:block; margin-bottom:5px; color:var(--green); font-size:.78rem; font-weight:800; letter-spacing:.08em; }
+    .fact p { margin:0; font-size:1.05rem; font-weight:700; word-break:keep-all; }
+    .interest-line { margin:22px 0 0; padding:18px 22px; color:var(--deep); background:var(--soft); border-radius:14px; font-weight:700; word-break:keep-all; }
+    .book-list { display:grid; gap:24px; }
+    .book-card { position:relative; isolation:isolate; display:grid; grid-template-columns:minmax(150px,.7fr) minmax(0,1.3fr); gap:clamp(28px,6vw,72px); align-items:center; overflow:hidden; padding:clamp(22px,4vw,40px); text-decoration:none; background:#fbfcf8; border:1px solid var(--line); border-radius:24px; box-shadow:0 7px 22px rgba(34,73,57,.04); transition:transform 180ms ease,box-shadow 180ms ease; }
+    .book-card > * { position:relative; z-index:1; }
+    .book-card::before,.book-card::after { position:absolute; z-index:0; width:210px; height:210px; border-radius:45% 55% 56% 44% / 47% 43% 57% 53%; content:""; filter:blur(42px); opacity:.32; pointer-events:none; animation:book-blob-pulse 9s ease-in-out infinite; }
+    .book-card::before { top:-112px; right:-72px; background:#c3dcb5; }
+    .book-card::after { bottom:-122px; left:-68px; background:#f0d5a4; animation-delay:-3.4s; }
+    .book-card:nth-child(even)::before { background:#b8d7ce; animation-delay:-1.8s; }
+    .book-card:nth-child(even)::after { background:#e4d9a5; animation-delay:-5.1s; }
+    .book-card:nth-child(3n)::before { background:#d5e1ae; animation-delay:-4.3s; }
+    .book-card:nth-child(3n)::after { background:#b9d7c8; animation-delay:-.9s; }
+    @keyframes book-blob-pulse { 0%,100% { transform:scale(1) rotate(0); } 33% { transform:scale(1.18) rotate(7deg); } 66% { transform:scale(.86) rotate(-8deg); } }
+    .book-card:nth-child(even) { grid-template-columns:minmax(0,1.3fr) minmax(150px,.7fr); }
+    .book-card:nth-child(even) .book-cover { grid-column:2; grid-row:1; }
+    .book-card:nth-child(even) .book-copy { grid-column:1; grid-row:1; text-align:right; }
+    .book-card:hover,.book-card:focus-within { transform:translateY(-4px); box-shadow:var(--shadow); }
+    .book-cover { display:grid; width:min(100%,190px); aspect-ratio:1; place-self:center; place-items:center; overflow:hidden; background:#f1ead8; border:9px solid #f4f0e3; border-radius:50%; box-shadow:0 12px 25px rgba(27,56,43,.14); }
+    .book-cover img { width:100%; height:100%; object-fit:cover; }
+    .book-number { color:var(--green); font-size:.8rem; font-weight:800; letter-spacing:.12em; }
+    .book-copy h3 { margin:8px 0 14px; font-size:clamp(1.35rem,2.5vw,1.8rem); line-height:1.35; letter-spacing:-.04em; word-break:keep-all; }
+    .store-links { display:flex; flex-wrap:wrap; gap:12px 18px; margin-top:18px; }
+    .book-card:nth-child(even) .store-links { justify-content:flex-end; }
+    .visit { display:inline-block; color:var(--green); font-size:.9rem; font-weight:800; text-decoration:none; }
+    .kyobo-visit { color:#4c5b2d; }
+    .aladin-visit { color:#265a8d; }
+    .visit:hover { text-decoration:underline; text-underline-offset:4px; }
+    .visit:focus-visible { outline:3px solid #9ebd9a; outline-offset:4px; border-radius:2px; }
+    .lessons { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    .lesson-card { display:flex; flex-direction:column; padding:28px; }
+    .lesson-blob { position:relative; isolation:isolate; overflow:hidden; background:#fbfcf8; }
+    .lesson-blob > * { position:relative; z-index:1; }
+    .lesson-blob::before,.lesson-blob::after { position:absolute; z-index:0; width:150px; height:150px; border-radius:48% 52% 57% 43% / 43% 48% 52% 57%; content:""; filter:blur(32px); opacity:.42; animation:lesson-blob-pulse 7s ease-in-out infinite; }
+    .lesson-blob::before { top:-70px; right:-48px; background:#c7ddb9; }
+    .lesson-blob::after { bottom:-90px; left:-52px; background:#f2d8a8; animation-delay:-2.8s; }
+    .lesson-blob:nth-child(2)::before { background:#b8d5ca; animation-delay:-1.5s; }
+    .lesson-blob:nth-child(2)::after { background:#d9e5af; animation-delay:-4.2s; }
+    .lesson-blob:nth-child(3)::before { background:#ebd0a7; animation-delay:-3.3s; }
+    .lesson-blob:nth-child(3)::after { background:#bedccf; animation-delay:-.8s; }
+    @keyframes lesson-blob-pulse { 0%,100% { transform:scale(1) rotate(0); } 33% { transform:scale(1.22) rotate(9deg); } 66% { transform:scale(.84) rotate(-6deg); } }
+    .lesson-index { color:var(--green); font-size:.78rem; font-weight:800; letter-spacing:.12em; }
+    .lesson-card h3 { margin:13px 0 20px; font-size:1.35rem; letter-spacing:-.04em; }
+    .lesson-label { margin-bottom:4px; color:var(--green); font-size:.78rem; font-weight:800; }
+    .lesson-card p { margin-bottom:18px; word-break:keep-all; }
+    .lesson-card p:last-child { margin-bottom:0; }
+    .pending { color:var(--muted); font-weight:700; }
+    .contact-section { padding-bottom:8px; }
+    .contact-card { position:relative; isolation:isolate; display:flex; align-items:center; justify-content:space-between; gap:28px; overflow:hidden; padding:clamp(28px,4vw,42px); color:#fffdf5; background:linear-gradient(120deg,#0d3932,#1d6855); border-radius:24px; box-shadow:var(--shadow); }
+    .contact-card > * { position:relative; z-index:1; }
+    .contact-card::before,.contact-card::after { position:absolute; z-index:0; width:250px; height:250px; border-radius:48% 52% 57% 43% / 43% 48% 52% 57%; content:""; filter:blur(40px); opacity:.45; pointer-events:none; animation:contact-blob-pulse 8s ease-in-out infinite; }
+    .contact-card::before { top:-150px; right:18%; background:#b9d88e; }
+    .contact-card::after { right:-90px; bottom:-155px; background:#eacb92; animation-delay:-3.1s; }
+    @keyframes contact-blob-pulse { 0%,100% { transform:scale(1) rotate(0); } 50% { transform:scale(1.22) rotate(10deg); } }
+    .contact-card h2 { margin:7px 0 8px; font-size:clamp(1.7rem,3vw,2.35rem); letter-spacing:-.05em; }
+    .contact-card p { margin:0; color:#e9f0df; font-weight:700; word-break:keep-all; }
+    .contact-button { display:inline-flex; flex:0 0 auto; align-items:center; justify-content:center; min-height:52px; padding:0 22px; color:var(--deep); background:#f7f1df; border-radius:999px; font-weight:800; text-decoration:none; transition:transform 180ms ease,background-color 180ms ease; }
+    .contact-button:hover { background:#fffdf5; transform:translateY(-2px); }
+    .contact-button:focus-visible { outline:3px solid #d9edb9; outline-offset:4px; }
+    footer { padding:30px 20px 48px; color:var(--muted); font-size:.87rem; text-align:center; }
+    @media (max-width:720px) { .container { width:min(100% - 28px,1060px); } .hero { min-height:620px; padding:72px 14px; } main { padding-bottom:56px; } section { padding-top:62px; } .profile,.lessons { grid-template-columns:1fr; } .section-heading { margin-bottom:30px; } .book-card,.book-card:nth-child(even) { grid-template-columns:112px minmax(0,1fr); gap:18px; padding:20px; } .book-card:nth-child(even) .book-cover { grid-column:1; grid-row:1; } .book-card:nth-child(even) .book-copy { grid-column:2; grid-row:1; text-align:left; } .book-card:nth-child(even) .store-links { justify-content:flex-start; } .book-cover { width:108px; border-width:6px; } .book-copy h3 { margin-top:5px; font-size:1.18rem; } .store-links { margin-top:11px; gap:8px 12px; } }
+    @media (max-width:720px) { .contact-card { align-items:flex-start; flex-direction:column; gap:20px; } .contact-button { width:100%; } }
+    @media (pointer:coarse) { .glow-cursor { display:none; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .shooting-star,.book-card,.book-card::before,.book-card::after,.profile-intro,.lesson-blob::before,.lesson-blob::after,.contact-card::before,.contact-card::after { animation:none; transition:none; } .shooting-star { opacity:.45; } .glow-cursor { display:none; } html.ready .animated-content { opacity:1; filter:none; transform:none; transition:none; } }
+  </style>
+</head>
+<body>
+  <div class="glow-cursor" aria-hidden="true"></div>
+  <div class="page">
+    <header class="hero">
+      <div class="sky" aria-hidden="true">
+        <span class="shooting-star" style="--x:-10%;--y:3%;--length:150px;--angle:24deg;--duration:4.8s;--delay:-1.2s"></span>
+        <span class="shooting-star" style="--x:14%;--y:18%;--length:100px;--angle:20deg;--duration:6.2s;--delay:-4.1s"></span>
+        <span class="shooting-star" style="--x:45%;--y:0%;--length:180px;--angle:27deg;--duration:5.4s;--delay:-2.6s"></span>
+        <span class="shooting-star" style="--x:72%;--y:31%;--length:90px;--angle:18deg;--duration:7.2s;--delay:-5.3s"></span>
+        <span class="shooting-star" style="--x:4%;--y:62%;--length:130px;--angle:25deg;--duration:6.7s;--delay:-3.4s"></span>
+        <span class="shooting-star" style="--x:64%;--y:70%;--length:160px;--angle:22deg;--duration:5.1s;--delay:-.8s"></span>
+      </div>
+      <div class="hero-content">
+        <p class="eyebrow">K W A K &nbsp; I N A</p>
+        <h1>나라는 사람의<br />자기소개서</h1>
+        <p class="hero-copy">AI·디지털 교육과 글쓰기를 통해 배움의 즐거움을 나누는 곽인아입니다.</p>
+        <ul class="role-list" aria-label="현재 활동"><li>디지털배움터 주강사</li><li>고등학교 AI교육 코디네이터</li><li>AI 디지털튜터 양성과정 수료</li></ul>
+      </div>
+    </header>
+    <main class="container">
+      <section aria-labelledby="about-title">
+        <p class="section-kicker">01 · ABOUT</p><h2 class="section-heading" id="about-title">AI·디지털 교육과 글쓰기</h2>
+        <div class="profile">
+          <article class="profile-intro"><h3>현재 활동</h3><p class="animated-content">AI·디지털 교육과 글쓰기를 통해 배움의 즐거움을 나눕니다.</p></article>
+          <div class="profile-facts">
+            <div class="fact"><span class="fact-label">CURRENT ROLE</span><p>디지털배움터 주강사</p></div>
+            <div class="fact"><span class="fact-label">CURRENT ROLE</span><p>고등학교 AI교육 코디네이터</p></div>
+            <div class="fact"><span class="fact-label">RECENT LEARNING</span><p>AI 디지털튜터 양성과정 수료</p></div>
+          </div>
+        </div>
+        <p class="interest-line">관심 분야 · AI 교육 · 디지털 활용 · 글쓰기·전자책 작업</p>
+      </section>
+      <section aria-labelledby="books-title">
+        <p class="section-kicker">02 · E-BOOKS</p><h2 class="section-heading" id="books-title">내가 만든 전자책들</h2>
+        <div class="book-list">
+          <article class="book-card"><span class="book-cover"><img src="https://image.yes24.com/goods/196575538/XL" alt="우리 할머니 전자책 표지" /></span><span class="book-copy"><span class="book-number">E-BOOK 01</span><h3>우리 할머니</h3><span class="store-links"><a class="visit" href="https://www.yes24.com/product/goods/196575538" target="_blank" rel="noopener noreferrer">YES24에서 보기 →</a><a class="visit kyobo-visit" href="https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000013582394" target="_blank" rel="noopener noreferrer">교보문고에서 보기 →</a></span></span></article>
+          <article class="book-card"><span class="book-cover"><img src="https://image.yes24.com/goods/180487815/XL" alt="아니야 아니야, 너는 할 수 있어! 전자책 표지" /></span><span class="book-copy"><span class="book-number">E-BOOK 02</span><h3>아니야 아니야,<br />너는 할 수 있어!</h3><span class="store-links"><a class="visit" href="https://www.yes24.com/product/goods/180487815" target="_blank" rel="noopener noreferrer">YES24에서 보기 →</a><a class="visit kyobo-visit" href="https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000012655859" target="_blank" rel="noopener noreferrer">교보문고에서 보기 →</a><a class="visit aladin-visit" href="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=387595907" target="_blank" rel="noopener noreferrer">알라딘에서 보기 →</a></span></span></article>
+          <article class="book-card"><span class="book-cover"><img src="https://image.yes24.com/goods/195943739/XL" alt="모모의 용기 후드티 전자책 표지" /></span><span class="book-copy"><span class="book-number">E-BOOK 03</span><h3>모모의 용기 후드티</h3><span class="store-links"><a class="visit" href="https://www.yes24.com/product/goods/195943739" target="_blank" rel="noopener noreferrer">YES24에서 보기 →</a><a class="visit aladin-visit" href="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=401483341" target="_blank" rel="noopener noreferrer">알라딘에서 보기 →</a></span></span></article>
+          <article class="book-card"><span class="book-cover"><img src="https://image.yes24.com/goods/181172890/XL" alt="냠냠 숲의 색깔 요정들 전자책 표지" /></span><span class="book-copy"><span class="book-number">E-BOOK 04</span><h3>냠냠 숲의<br />색깔 요정들</h3><span class="store-links"><a class="visit" href="https://www.yes24.com/product/goods/181172890" target="_blank" rel="noopener noreferrer">YES24에서 보기 →</a><a class="visit kyobo-visit" href="https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000012702948" target="_blank" rel="noopener noreferrer">교보문고에서 보기 →</a><a class="visit aladin-visit" href="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=387722224" target="_blank" rel="noopener noreferrer">알라딘에서 보기 →</a></span></span></article>
+          <article class="book-card"><span class="book-cover"><img src="https://image.yes24.com/goods/182528524/XL" alt="사라진 양말의 비밀여행 전자책 표지" /></span><span class="book-copy"><span class="book-number">E-BOOK 05</span><h3>사라진 양말의<br />비밀여행</h3><span class="store-links"><a class="visit" href="https://www.yes24.com/product/goods/182528524" target="_blank" rel="noopener noreferrer">YES24에서 보기 →</a><a class="visit kyobo-visit" href="https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000012702969" target="_blank" rel="noopener noreferrer">교보문고에서 보기 →</a><a class="visit aladin-visit" href="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=388450690" target="_blank" rel="noopener noreferrer">알라딘에서 보기 →</a></span></span></article>
+          <article class="book-card"><span class="book-cover"><img src="https://image.yes24.com/goods/178771019/XL" alt="AI가 당신의 직업을 지우기전에 전자책 표지" /></span><span class="book-copy"><span class="book-number">E-BOOK 06</span><h3>AI가 당신의<br />직업을 지우기전에</h3><span class="store-links"><a class="visit" href="https://www.yes24.com/product/goods/178771019" target="_blank" rel="noopener noreferrer">YES24에서 보기 →</a><a class="visit kyobo-visit" href="https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000012616196" target="_blank" rel="noopener noreferrer">교보문고에서 보기 →</a><a class="visit aladin-visit" href="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=386473181" target="_blank" rel="noopener noreferrer">알라딘에서 보기 →</a></span></span></article>
+        </div>
+      </section>
+      <section aria-labelledby="classes-title">
+        <p class="section-kicker">03 · CLASSES</p><h2 class="section-heading" id="classes-title">내가 하는 수업들</h2>
+        <div class="lessons">
+          <article class="lesson-card lesson-blob"><span class="lesson-index">CLASS 01</span><h3>생성형 AI 수업</h3><span class="lesson-label">대상</span><p>청소년, 중장년, 시니어</p><span class="lesson-label">상세 활동</span><p>생성형AI를 활용한 전반적인 수업을 한다</p></article>
+          <article class="lesson-card lesson-blob"><span class="lesson-index">CLASS 02</span><h3>바이브코딩 수업</h3><span class="lesson-label">대상</span><p>청소년, 중장년, 시니어</p><span class="lesson-label">활동</span><p>생활 속 불편함을 해결하는 웹앱을 직접 만든다.</p></article>
+          <article class="lesson-card lesson-blob"><span class="lesson-index">CLASS 03</span><h3>그림책 만들기 수업</h3><span class="lesson-label">대상</span><p>청소년, 중장년, 시니어</p><span class="lesson-label">활동</span><p>생성형 AI를 활용해 전문가가 아니어도 그림책을 만들고 작가가 되는 경험을 한다.</p></article>
+        </div>
+      </section>
+      <section class="contact-section" aria-labelledby="contact-title">
+        <div class="contact-card">
+          <div><p class="section-kicker">04 · CONTACT</p><h2 id="contact-title">수업 문의</h2><p>수업 구성과 일정이 궁금하시면 편하게 질문해 주세요.</p></div>
+          <a class="contact-button" href="https://open.kakao.com/o/sOwPPfOi" target="_blank" rel="noopener noreferrer">카카오톡 오픈채팅으로 문의하기 →</a>
+        </div>
+      </section>
+    </main>
+    <footer>© 곽인아 · AI·디지털 교육과 글쓰기</footer>
+  </div>
+  <script>
+    document.documentElement.classList.add("ready");
+    const glowCursor = document.querySelector(".glow-cursor");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const finePointer = window.matchMedia("(pointer: fine)");
+
+    if (glowCursor && !reducedMotion.matches && finePointer.matches) {
+      document.addEventListener("pointermove", (event) => {
+        if (event.pointerType !== "mouse") return;
+        glowCursor.style.left = `${event.clientX}px`;
+        glowCursor.style.top = `${event.clientY}px`;
+        glowCursor.style.opacity = "1";
+      });
+      document.addEventListener("mouseleave", () => { glowCursor.style.opacity = "0"; });
+      window.addEventListener("blur", () => { glowCursor.style.opacity = "0"; });
+    }
+
+    const animatedContents = document.querySelectorAll(".animated-content");
+    if (reducedMotion.matches || !("IntersectionObserver" in window)) {
+      animatedContents.forEach((content) => content.classList.add("is-visible"));
+    } else {
+      const contentObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.35 });
+      animatedContents.forEach((content) => contentObserver.observe(content));
+    }
+  </script>
+</body>
+</html>
