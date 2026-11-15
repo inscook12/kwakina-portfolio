@@ -1,0 +1,46 @@
+포토룸 FFmpeg — 사용한 오픈소스와 라이선스
+==========================================
+
+이 폴더의 index.html 은 아래 오픈소스를 함께 담고 있습니다.
+저작권은 각 원저작자에게 있으며, 전문은 같은 폴더의 파일을 보세요.
+
+1) FFmpeg 5.1.4  (영상·음성 인코딩 엔진, WebAssembly 빌드)
+   제작: FFmpeg developers — https://ffmpeg.org / https://github.com/FFmpeg/FFmpeg
+   라이선스: LGPL-2.1-or-later (전문: lgpl21.txt)
+   단, 이 배포에 쓰인 WebAssembly 빌드는 GPL 구성요소(libx264, libx265)를
+   포함해 --enable-gpl 로 빌드되었으므로 GPL-2.0-or-later 조건이 적용됩니다.
+   (전문: gpl2.txt)  빌드 설정은 `ffmpeg -version` 출력에서 확인할 수 있습니다.
+
+2) ffmpeg.wasm 0.12.10 · @ffmpeg/core 0.12.6
+   제작: Copyright © 2019 Jerome Wu — https://github.com/ffmpegwasm/ffmpeg.wasm
+   라이선스: MIT License
+   (아래 MIT 전문)
+
+3) Paperlogy 서체
+   제작: © Project Noonnu (눈누 배포)
+   라이선스: SIL Open Font License 1.1
+   — 서체는 index.html 안에 base64로 담겨 있습니다.
+
+------------------------------------------------------------------
+MIT License (ffmpeg.wasm)
+
+Copyright (c) 2019 Jerome Wu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+------------------------------------------------------------------
