@@ -360,6 +360,49 @@ main{flex:1;display:flex;flex-direction:column}
 .report-item details[open] summary::after{content:"▴"}
 .report-actions{display:flex;flex-direction:column;gap:9px;padding-top:2px}
 
+/* ---------- bulk paste sheet ---------- */
+.tool-row .btn.wide{flex:1 1 100%;min-height:46px;font-size:14px}
+.sheet-backdrop{
+  position:fixed;inset:0;z-index:70;background:rgba(23,24,28,.4);
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.sheet{
+  width:100%;max-width:600px;max-height:92dvh;overflow-y:auto;
+  background:var(--surface);border-radius:22px 22px 0 0;
+  padding:18px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 40px rgba(23,24,28,.2);
+  display:flex;flex-direction:column;gap:12px;
+  animation:sheetUp .22s ease;
+}
+@keyframes sheetUp{from{transform:translateY(22px);opacity:.55}to{transform:none;opacity:1}}
+@media (min-width:640px){
+  .sheet-backdrop{align-items:center;padding:24px}
+  .sheet{border-radius:20px;max-height:86vh;padding:20px}
+}
+.sheet-head{display:flex;align-items:flex-start;gap:10px}
+.sheet-head>div{flex:1;min-width:0}
+.sheet-head h2{font-size:18px;font-weight:800;letter-spacing:-.02em}
+.sheet-head p{margin-top:5px;font-size:12.5px;color:var(--muted);line-height:1.5;word-break:keep-all}
+.sheet-x{flex:0 0 auto;width:34px;height:34px;min-height:34px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);font-size:14px;line-height:1}
+.bulk-guide{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+  font-size:12px;line-height:1.7;color:var(--ink-2);word-break:keep-all;
+}
+.bulk-guide b{display:inline-block;min-width:52px;color:var(--primary);font-weight:800;font-size:11.5px}
+.bulk-guide code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 4px;word-break:break-all}
+#bulkText{
+  width:100%;min-height:148px;max-height:36dvh;resize:vertical;
+  border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);
+  padding:11px 12px;font-size:13.5px;line-height:1.65;letter-spacing:-.01em;
+}
+#bulkText:focus{border-color:#A9ADE0;outline:none;box-shadow:0 0 0 3px rgba(80,85,177,.12)}
+.bulk-status{display:flex;align-items:flex-start;gap:6px;min-height:19px;font-size:12.5px;font-weight:700;color:var(--muted);line-height:1.5;word-break:keep-all}
+.bulk-status.ok{color:var(--ok)}
+.bulk-status.err{color:var(--bad)}
+.bulk-status .warn{color:var(--warn);font-weight:600;display:block;margin-top:2px}
+.bulk-actions{display:flex;flex-direction:column;gap:8px}
+.bulk-note{font-size:11.5px;color:#9A9EAA;line-height:1.5;text-align:center;word-break:keep-all}
+
 /* ---------- footer & toast ---------- */
 .footer{
   padding:18px 16px calc(18px + env(safe-area-inset-bottom));
@@ -408,6 +451,10 @@ main{flex:1;display:flex;flex-direction:column}
         <button class="btn ghost sm" id="btnReset" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5V10H9"/></svg>
           전체 초기화
+        </button>
+        <button class="btn soft wide" id="btnBulk" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+          한 번에 붙여넣기
         </button>
       </div>
 
@@ -530,6 +577,31 @@ main{flex:1;display:flex;flex-direction:column}
   </main>
 
   <footer class="footer">© 2026 곽인아 제작 · 출처 표기 후 사용 가능</footer>
+</div>
+
+<!-- ============ BULK PASTE SHEET ============ -->
+<div class="sheet-backdrop" id="bulkSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="bulkTitle" aria-describedby="bulkDesc">
+    <div class="sheet-head">
+      <div>
+        <h2 id="bulkTitle">질문지 한 번에 붙여넣기</h2>
+        <p id="bulkDesc">줄바꿈으로 문항을 구분해서 붙여넣으면 질문·키워드·시간이 자동으로 나뉘어요.</p>
+      </div>
+      <button class="sheet-x" id="bulkClose" type="button" aria-label="닫기">✕</button>
+    </div>
+    <div class="bulk-guide">
+      <div><b>간편 형식</b> 질문 | 키워드1, 키워드2 | 90</div>
+      <div><b>JSON 형식</b> <code>[{"question":"...","keywords":["..."],"targetSec":90}]</code></div>
+      <div><b>시간</b> 90 · 90초 · 1분 · 1분 30초 (생략하면 위에서 고른 목표 시간)</div>
+    </div>
+    <textarea id="bulkText" rows="7" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="자기소개를 1분 안에 해 주세요. | 성격, 강점, 경험 | 60"></textarea>
+    <div class="bulk-status" id="bulkStatus" aria-live="polite">붙여넣으면 문항 수를 먼저 확인해 드려요.</div>
+    <div class="bulk-actions">
+      <button class="btn primary full" id="bulkAppend" type="button">기존 목록에 추가</button>
+      <button class="btn ghost full" id="bulkReplace" type="button">목록 덮어쓰기</button>
+    </div>
+    <p class="bulk-note">붙여넣은 질문지는 이 기기 브라우저에만 저장되고 서버로 보내지 않아요.</p>
+  </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -658,6 +730,93 @@ main{flex:1;display:flex;flex-direction:column}
     if (sec < 60) return Math.ceil(sec) + '초';
     return fmtDur(sec);
   }
+  /* ---- duration parsing (90 / 90초 / 1분 / 1분 30초 / 1:30) ---- */
+  function parseDurationOnly(raw){
+    if (raw == null) return null;
+    var s = String(raw).trim().toLowerCase().replace(/\s+/g, ' ');
+    if (!s) return null;
+    var colon = s.match(/^(\d{1,3})\s*:\s*(\d{1,2})$/);
+    if (colon) return clampNum(parseInt(colon[1], 10) * 60 + parseInt(colon[2], 10), 10, 600);
+    var NUM = '(\\d+(?:\\.\\d+)?)';
+    var hRe = new RegExp(NUM + '\\s*(?:시간|hours?|hrs?|h)');
+    var mRe = new RegExp(NUM + '\\s*(?:분|minutes?|mins?|min|m)');
+    var sRe = new RegExp(NUM + '\\s*(?:초|seconds?|secs?|sec|s)');
+    var rest = s, total = 0, hit = false, mm;
+    if ((mm = rest.match(hRe))){ total += parseFloat(mm[1]) * 3600; rest = rest.replace(hRe, ''); hit = true; }
+    if ((mm = rest.match(mRe))){ total += parseFloat(mm[1]) * 60; rest = rest.replace(mRe, ''); hit = true; }
+    if ((mm = rest.match(sRe))){ total += parseFloat(mm[1]); rest = rest.replace(sRe, ''); hit = true; }
+    rest = rest.replace(/[\s,]/g, '');
+    if (!hit){
+      if (/^\d+(?:\.\d+)?$/.test(rest)) return clampNum(Math.round(parseFloat(rest)), 10, 600);
+      return null;
+    }
+    if (rest) return null; // left-over characters mean it is not a pure duration
+    return clampNum(Math.round(total), 10, 600);
+  }
+
+  // strip list markers such as "1.", "2)", "Q3)", "-", "•"
+  function stripBullet(s){
+    return String(s || '').replace(/^\s*(?:[-–—*•·▪]\s*|\(?\d{1,3}\s*[.)]\s*|[qQ]\s*\d{1,3}\s*[.)]?\s*|문\s*\d{1,3}\s*[.)]\s*)/, '').trim();
+  }
+
+  /* ---- bulk paste parser: plain lines or JSON ---- */
+  function parseBulkText(raw){
+    var text = String(raw == null ? '' : raw).replace(/\r\n?/g, '\n').trim();
+    if (!text) return { items: [], warnings: [], error: '붙여넣은 내용이 없어요.' };
+
+    var head = text.charAt(0);
+    if (head === '[' || head === '{'){
+      var data;
+      try { data = JSON.parse(text); }
+      catch(e) { return { items: [], warnings: [], error: 'JSON 형식이 올바르지 않아요. 쉼표와 따옴표를 확인해 주세요.' }; }
+      if (data && !Array.isArray(data) && Array.isArray(data.questions)) data = data.questions;
+      if (data && !Array.isArray(data) && Array.isArray(data.items)) data = data.items;
+      if (!Array.isArray(data)) return { items: [], warnings: [], error: 'JSON은 [{ "question": "...", "keywords": ["..."] }] 형태의 목록이어야 해요.' };
+      var jItems = [], jWarn = [];
+      data.forEach(function(row, i){
+        if (typeof row === 'string') row = { question: row };
+        if (!row || typeof row !== 'object' || Array.isArray(row)){ jWarn.push((i + 1) + '번째 항목을 건너뛰었어요.'); return; }
+        var q = row.question || row.text || row.q || row.prompt || '';
+        q = String(q).trim();
+        if (!q){ jWarn.push((i + 1) + '번째 항목에 질문이 없어 건너뛰었어요.'); return; }
+        var kw = row.keywords != null ? row.keywords : (row.kw != null ? row.kw : row.keys);
+        if (Array.isArray(kw)) kw = kw.map(function(k){ return String(k == null ? '' : k).trim(); }).filter(Boolean).join(', ');
+        kw = String(kw == null ? '' : kw).replace(/\s*,\s*/g, ', ').replace(/\s+/g, ' ').trim();
+        var t = row.targetSec != null ? row.targetSec
+              : (row.target != null ? row.target
+              : (row.seconds != null ? row.seconds
+              : (row.time != null ? row.time : row.target_sec)));
+        jItems.push({ text: q, kw: kw, target: parseDurationOnly(t) });
+      });
+      if (!jItems.length) return { items: [], warnings: jWarn, error: '등록할 질문을 찾지 못했어요.' };
+      return { items: jItems, warnings: jWarn, error: '' };
+    }
+
+    var out = [], warnings = [];
+    text.split('\n').forEach(function(line, i){
+      var row = line.replace(/｜/g, '|').trim();
+      if (!row || /^(?:\/\/|#|＞)/.test(row)) return;
+      var parts = (row.indexOf('|') >= 0 ? row.split('|') : row.split(/\t+/)).map(function(p){ return p.trim(); });
+      var question = stripBullet(parts[0]);
+      if (!question){ warnings.push((i + 1) + '번째 줄은 질문이 비어 있어 건너뛰었어요.'); return; }
+      var rest = parts.slice(1).filter(function(p){ return p !== ''; });
+      var kw = '', target = null;
+      if (rest.length === 1){
+        var only = parseDurationOnly(rest[0]);
+        if (only != null && !/[,;]/.test(rest[0])) target = only;
+        else kw = rest[0];
+      } else if (rest.length >= 2){
+        var tail = parseDurationOnly(rest[rest.length - 1]);
+        if (tail != null){ target = tail; rest = rest.slice(0, -1); }
+        kw = rest.join(', ');
+      }
+      kw = kw.replace(/\s*,\s*/g, ', ').replace(/\s+/g, ' ').trim();
+      out.push({ text: question, kw: kw, target: target });
+    });
+    if (!out.length) return { items: [], warnings: warnings, error: '등록할 질문을 찾지 못했어요.' };
+    return { items: out, warnings: warnings, error: '' };
+  }
+
   function toast(msg){
     var el = $('#toast');
     el.textContent = msg;
@@ -855,6 +1014,113 @@ main{flex:1;display:flex;flex-direction:column}
     state.globalPreset = '60';
     save(); renderSetup();
     toast('처음 상태로 되돌렸어요.');
+  });
+
+  /* ================= bulk paste sheet ================= */
+  var bulkTimer = null;
+  var bulkOpenedAt = 0;
+
+  function currentTargetSec(){
+    if (state.globalPreset === 'custom') return clampNum(parseInt(state.globalCustom, 10) || 120, 10, 600);
+    return parseInt(state.globalPreset, 10) || 60;
+  }
+
+  // "1분" -> "1분으로", "60초" -> "60초로"
+  function withRo(word){
+    var s = String(word || '');
+    var code = s.charCodeAt(s.length - 1);
+    var isHangul = code >= 0xAC00 && code <= 0xD7A3;
+    var hasJong = isHangul && ((code - 0xAC00) % 28) !== 0;
+    if (hasJong && (code - 0xAC00) % 28 === 8) hasJong = false; // ㄹ 받침은 '로'
+    return s + (hasJong ? '으로' : '로');
+  }
+
+  function updateBulkStatus(){
+    var box = $('#bulkStatus');
+    var typed = $('#bulkText').value.trim();
+    var res = parseBulkText($('#bulkText').value);
+    var ready = res.items.length > 0 && !res.error;
+    $('#bulkAppend').disabled = !ready;
+    $('#bulkReplace').disabled = !ready;
+    box.classList.remove('ok', 'err');
+    if (res.error){
+      if (typed){
+        box.classList.add('err');
+        box.textContent = res.error;
+      } else {
+        box.textContent = '붙여넣으면 문항 수를 먼저 확인해 드려요.';
+      }
+      return;
+    }
+    var noTime = res.items.filter(function(it){ return it.target == null; }).length;
+    var msg = res.items.length + '문항을 인식했어요.';
+    if (noTime) msg += ' 시간이 없는 ' + noTime + '문항은 ' + withRo(fmtDur(currentTargetSec())) + ' 등록돼요.';
+    box.classList.add('ok');
+    box.innerHTML = '<span>' + esc(msg) + '</span>' +
+      (res.warnings.length ? '<span class="warn">' + esc(res.warnings.join(' ')) + '</span>' : '');
+  }
+
+  function openBulk(){
+    $('#bulkSheet').hidden = false;
+    bulkOpenedAt = (window.performance && performance.now) ? performance.now() : Date.now();
+    document.body.style.overflow = 'hidden';
+    updateBulkStatus();
+    setTimeout(function(){ var t = $('#bulkText'); if (t) t.focus(); }, 80);
+  }
+
+  function closeBulk(){
+    if ($('#bulkSheet').hidden) return;
+    $('#bulkSheet').hidden = true;
+    document.body.style.overflow = '';
+    $('#btnBulk').focus();
+  }
+
+  function applyBulk(mode){
+    var res = parseBulkText($('#bulkText').value);
+    if (res.error){ updateBulkStatus(); toast(res.error); return; }
+    var fallback = currentTargetSec();
+    var items = res.items.map(function(it){
+      return {
+        id: uid(),
+        text: it.text,
+        kw: it.kw,
+        target: it.target == null ? fallback : clampNum(it.target, 10, 600)
+      };
+    });
+    if (mode === 'replace'){
+      state.questions = items;
+    } else {
+      var kept = state.questions.filter(function(q){
+        return String(q.text || '').trim() || String(q.kw || '').trim();
+      });
+      state.questions = kept.concat(items);
+    }
+    save();
+    renderSetup();
+    $('#bulkText').value = '';
+    closeBulk();
+    toast(mode === 'replace'
+      ? '질문 ' + items.length + '개로 바꿨어요.'
+      : '질문 ' + items.length + '개를 추가했어요.');
+  }
+
+  $('#btnBulk').addEventListener('click', openBulk);
+  $('#bulkClose').addEventListener('click', closeBulk);
+  $('#bulkSheet').addEventListener('click', function(e){
+    if (e.target !== this) return;
+    // ignore the trailing synthetic click that some mobile browsers fire right after opening
+    var now = (window.performance && performance.now) ? performance.now() : Date.now();
+    if (now - bulkOpenedAt < 400) return;
+    closeBulk();
+  });
+  $('#bulkText').addEventListener('input', function(){
+    clearTimeout(bulkTimer);
+    bulkTimer = setTimeout(updateBulkStatus, 120);
+  });
+  $('#bulkAppend').addEventListener('click', function(){ applyBulk('append'); });
+  $('#bulkReplace').addEventListener('click', function(){ applyBulk('replace'); });
+  document.addEventListener('keydown', function(e){
+    if ((e.key === 'Escape' || e.key === 'Esc') && !$('#bulkSheet').hidden) closeBulk();
   });
 
   /* ================= speech synthesis ================= */
@@ -1663,6 +1929,9 @@ main{flex:1;display:flex;flex-direction:column}
     screen: function(){ var a = document.querySelector('.screen.is-active'); return a ? a.id : null; },
     iv: function(){ return iv ? JSON.parse(JSON.stringify({ idx: iv.idx, phase: iv.phase, total: iv.qs.length, answers: iv.answers })) : null; },
     sample: function(){ $('#btnSample').click(); },
+    bulkOpen: function(){ openBulk(); },
+    bulkParse: function(text){ return parseBulkText(text); },
+    bulkApply: function(mode){ applyBulk(mode); },
     start: function(){ startInterview(); },
     simulate: function(text, seconds){
       if (!iv) return false;
