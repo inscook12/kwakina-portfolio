@@ -1075,6 +1075,7 @@ main{flex:1;display:flex;flex-direction:column}
     iv.interim = '';
     setTranscript();
     setSticky('listening');
+    $('#btnHear').hidden = true;
     $('#listenLabel').textContent = '마이크를 준비하고 있어요…';
     $('#tState').textContent = '답변 중';
     $('#btnReplay').disabled = true;
@@ -1303,6 +1304,7 @@ main{flex:1;display:flex;flex-direction:column}
 
     $('#listenLabel').textContent = '채점 완료';
     $('#tState').textContent = '완료';
+    $('#btnHear').hidden = true;
     renderAnalysis(res);
     setSticky('analysis');
     $('#ivBar').style.width = Math.round(((iv.idx + 1) / iv.qs.length) * 100) + '%';
