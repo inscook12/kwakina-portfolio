@@ -1,0 +1,1534 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#5055B1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="description" content="셀카를 켜고 생기부 기반 면접 질문을 무작위로 듣고, 1분 30초 답변 타이머로 실전처럼 연습하는 모의면접 웹앱" />
+<title>셀카 랜덤 모의면접</title>
+<style>
+:root{
+  --bg:#F3F4F9;
+  --surface:#FFFFFF;
+  --surface-2:#F7F7FB;
+  --ink:#15161C;
+  --ink-2:#3A3D48;
+  --muted:#6B6F7C;
+  --muted-2:#8E92A0;
+  --line:#E6E7EF;
+  --line-2:#D8DAE6;
+  --primary:#5055B1;
+  --primary-dark:#3F449B;
+  --primary-soft:#EEEFFA;
+  --primary-soft-2:#E3E5F7;
+  --ok:#15803D;
+  --ok-soft:#E9F6EE;
+  --warn:#B26A00;
+  --warn-soft:#FFF3E0;
+  --danger:#C0362C;
+  --danger-soft:#FDECEA;
+  --radius:18px;
+  --radius-sm:12px;
+  --shadow:0 10px 30px rgba(21,22,28,.07);
+  --shadow-sm:0 2px 8px rgba(21,22,28,.05);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow-x:hidden}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-width:320px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.55;letter-spacing:-.012em;word-break:keep-all;overflow-wrap:break-word;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+h1,h2,h3,p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+:focus-visible{outline:3px solid #B9BCE8;outline-offset:2px;border-radius:10px}
+[hidden]{display:none !important}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ---------- iOS · iPadOS 보정 ---------- */
+button{-webkit-touch-callout:none;touch-action:manipulation}
+video::-webkit-media-controls{display:none!important}
+video::-webkit-media-controls-start-playback-button{display:none!important;-webkit-appearance:none}
+@supports (-webkit-touch-callout:none){
+  html,body{height:100%}
+  .app{height:100vh;height:-webkit-fill-available}
+}
+
+/* ---------- 비밀번호 잠금 ---------- */
+.lock-wrap{
+  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;align-items:center;justify-content:center;
+  padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+}
+.lock-card{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;gap:13px}
+.lock-card.is-shake{animation:shake .4s ease}
+.lock-icon{width:56px;height:56px;border-radius:18px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center}
+.lock-icon svg{width:26px;height:26px}
+.lock-head{text-align:center}
+.lock-head h1{font-size:19px;font-weight:800;letter-spacing:-.03em;line-height:1.3}
+.lock-head p{margin-top:5px;font-size:12px;color:var(--muted);font-weight:600}
+.dots{display:flex;gap:12px;margin-top:2px}
+.dots i{
+  width:15px;height:15px;border-radius:50%;border:1.7px solid #C7CAD8;background:#fff;
+  transition:transform .14s,background .14s,border-color .14s;
+}
+.dots i.on{background:var(--primary);border-color:var(--primary);transform:scale(1.08)}
+.dots.is-ok i{background:var(--ok);border-color:var(--ok)}
+.dots.is-err i{background:var(--danger-soft);border-color:var(--danger)}
+.lock-msg{min-height:17px;font-size:11.5px;font-weight:700;color:var(--muted-2);text-align:center;line-height:1.45}
+.lock-msg.is-err{color:var(--danger)}
+.lock-msg.is-ok{color:var(--ok)}
+.keypad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;width:100%;max-width:280px;margin-top:3px}
+.key{
+  height:54px;border-radius:15px;background:var(--surface-2);border:1px solid var(--line);
+  color:var(--ink);font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;
+  transition:transform .1s,background .14s;
+}
+.key:active{transform:scale(.955);background:var(--primary-soft)}
+.key--fn{font-size:12.5px;font-weight:800;color:var(--muted);background:transparent;border-color:transparent}
+.key--fn:active{background:var(--surface-2)}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  18%{transform:translateX(-8px)}
+  36%{transform:translateX(7px)}
+  54%{transform:translateX(-5px)}
+  72%{transform:translateX(4px)}
+  88%{transform:translateX(-2px)}
+}
+@media (max-height:640px){
+  .lock-icon{display:none}
+  .lock-card{gap:10px}
+  .key{height:46px;border-radius:13px;font-size:19px}
+}
+
+/* ---------- 카메라 확인 ---------- */
+.camtest{display:flex;flex-direction:column;gap:10px;margin-top:11px}
+.camtest-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.btn-check{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:0 14px;
+  border-radius:12px;background:var(--primary);color:#fff;font-size:12.5px;font-weight:800;
+  box-shadow:0 6px 14px rgba(80,85,177,.22);transition:transform .1s,background .15s;
+}
+.btn-check:hover{background:var(--primary-dark)}
+.btn-check:active{transform:scale(.985)}
+.btn-check[disabled]{opacity:.6;box-shadow:none}
+.btn-check svg{width:16px;height:16px;flex:0 0 16px}
+.perm-tag{
+  display:inline-flex;align-items:center;padding:5px 9px;border-radius:999px;
+  background:var(--surface-2);border:1px solid var(--line);font-size:10.5px;font-weight:800;color:var(--muted);
+}
+.perm-tag[data-state="granted"]{background:var(--ok-soft);border-color:#C7E7D3;color:var(--ok)}
+.perm-tag[data-state="denied"]{background:var(--danger-soft);border-color:#F2C9C5;color:var(--danger)}
+.camtest-preview{display:none;position:relative;width:100%;max-width:270px;border-radius:14px;overflow:hidden;background:#101117}
+.camtest-preview::before{content:"";display:block;padding-top:75%}
+.camtest-preview.on{display:block}
+.camtest-preview video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);background:#101117}
+.camtest-close{
+  position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;
+  background:rgba(12,13,18,.55);color:#fff;font-size:15px;font-weight:700;line-height:1;
+  display:grid;place-items:center;backdrop-filter:blur(4px);
+}
+.camtest-state{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;font-weight:700;color:var(--muted);line-height:1.45}
+.camtest-state .dotm{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:var(--muted-2);margin-top:5px}
+.camtest-state.is-ok{color:var(--ok)}
+.camtest-state.is-ok .dotm{background:var(--ok)}
+.camtest-state.is-warn{color:var(--warn)}
+.camtest-state.is-warn .dotm{background:var(--warn)}
+.camtest-state.is-err{color:var(--danger)}
+.camtest-state.is-err .dotm{background:var(--danger)}
+
+/* ---------- 면접관 목소리 배지 ---------- */
+.pill--male{background:#E8EEFB;color:#2F4C8F}
+.pill--female{background:#FBEAF1;color:#A03A63}
+
+/* ---------- shell ---------- */
+.app{
+  width:100%;max-width:560px;margin:0 auto;height:100vh;height:100dvh;
+  background:var(--surface);display:flex;flex-direction:column;overflow:hidden;
+}
+@media (min-width:900px){
+  body{background:linear-gradient(180deg,#F6F7FB 0%,#EEF0F8 100%)}
+  .app{max-width:1120px;box-shadow:0 0 0 1px rgba(21,22,28,.05),0 30px 70px rgba(21,22,28,.08);border-radius:0}
+}
+main{flex:1;display:flex;flex-direction:column;min-height:0}
+.screen{display:none;flex:1;flex-direction:column;min-height:0}
+.screen.is-active{display:flex}
+
+/* ---------- topbar ---------- */
+.topbar{
+  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));
+  background:rgba(255,255,255,.92);backdrop-filter:saturate(160%) blur(8px);
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{
+  width:36px;height:36px;flex:0 0 36px;border-radius:11px;display:grid;place-items:center;
+  background:var(--primary-soft);color:var(--primary);
+}
+.logo svg{width:20px;height:20px}
+.brand-text{display:flex;flex-direction:column;line-height:1.22;min-width:0}
+.brand-text strong{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.brand-text small{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .btn-quiet{
+  display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;
+  border:1px solid var(--line-2);background:#fff;color:var(--ink-2);font-size:13px;font-weight:700;
+}
+.topbar .btn-quiet:hover{border-color:var(--primary);color:var(--primary)}
+
+/* ---------- setup ---------- */
+.setup-wrap{padding:0 0 8px;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0}
+.hero{
+  position:relative;padding:22px 20px 20px;color:#fff;
+  background:radial-gradient(120% 120% at 85% -10%,#6E73CE 0%,#5055B1 46%,#3F449B 100%);
+}
+@media (min-width:900px){.hero{border-radius:0;padding:30px 36px 26px}}
+.hero .kicker{
+  display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;padding:5px 10px;border-radius:999px;
+  background:rgba(255,255,255,.16);font-size:11.5px;font-weight:700;letter-spacing:.02em;
+}
+.hero h1{font-size:25px;line-height:1.28;font-weight:800;letter-spacing:-.035em}
+.hero p{margin-top:8px;font-size:13px;color:rgba(255,255,255,.82);line-height:1.5;max-width:34em}
+.hero-stats{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.hero-stat{
+  flex:1 1 0;min-width:92px;padding:9px 11px;border-radius:13px;background:rgba(255,255,255,.13);
+  border:1px solid rgba(255,255,255,.16);
+}
+.hero-stat b{display:block;font-size:17px;font-weight:800;letter-spacing:-.02em}
+.hero-stat span{display:block;font-size:11px;color:rgba(255,255,255,.75);font-weight:600}
+
+.setup-body{padding:16px 16px 6px;display:flex;flex-direction:column;gap:12px}
+@media (min-width:900px){
+  .hero{padding:24px 40px 22px}
+  .hero h1{font-size:26px}
+  .hero p{margin-top:7px;font-size:12.5px}
+  .hero-stats{margin-top:14px}
+  .setup-body{padding:14px 40px 4px;display:grid;grid-template-columns:1.15fr 1fr;gap:14px;align-items:start;max-width:1000px;margin:0 auto;width:100%}
+  .setup-body .card--steps{display:block;grid-column:1 / -1;padding:12px 14px}
+  .card--steps .steps{margin-top:9px;gap:7px}
+  .card--steps .steps li{padding:8px 10px}
+  .card--steps .steps span{font-size:10.5px}
+  .start-wrap{max-width:1000px;margin:0 auto;width:100%;border-top:0;background:transparent;padding:12px 40px 16px}
+}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:15px 15px 14px;box-shadow:var(--shadow-sm)}
+.card h2{font-size:13px;font-weight:800;color:var(--ink);letter-spacing:-.01em;display:flex;align-items:center;gap:7px}
+.card h2 .num{
+  width:19px;height:19px;border-radius:7px;display:grid;place-items:center;flex:0 0 19px;
+  background:var(--primary-soft);color:var(--primary);font-size:11px;font-weight:800;
+}
+.card .hint{margin-top:3px;font-size:11.5px;color:var(--muted);line-height:1.45}
+
+.seg{display:flex;gap:6px;margin-top:12px;padding:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:13px}
+.seg label{flex:1 1 0;min-width:0}
+.seg input{position:absolute;opacity:0;width:0;height:0}
+.seg span{
+  display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 4px;border-radius:10px;
+  font-size:12.5px;font-weight:700;color:var(--muted);line-height:1.2;text-align:center;transition:.15s;
+}
+.seg span small{font-size:10px;font-weight:600;color:var(--muted-2)}
+.seg input:checked + span{background:#fff;color:var(--primary);box-shadow:0 1px 4px rgba(21,22,28,.1)}
+.seg input:focus-visible + span{outline:3px solid #B9BCE8;outline-offset:1px}
+
+.rowline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.rowline:first-of-type{border-top:0;padding-top:0;margin-top:12px}
+.rowline .lbl{font-size:13px;font-weight:700}
+.rowline .sub{font-size:11px;color:var(--muted);margin-top:1px}
+.switch{position:relative;flex:0 0 46px;width:46px;height:27px;border-radius:999px;background:#DEE0EA;transition:.18s;border:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.18s}
+.switch[aria-checked="true"]{background:var(--primary)}
+.switch[aria-checked="true"]::after{transform:translateX(19px)}
+.switch:disabled{opacity:.45;cursor:not-allowed}
+
+.chips{display:flex;gap:6px;margin-top:12px}
+.chip-opt{
+  flex:1 1 0;padding:9px 4px;border-radius:11px;border:1px solid var(--line-2);background:#fff;
+  font-size:12.5px;font-weight:700;color:var(--ink-2);text-align:center;transition:.15s;
+}
+.chip-opt[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft);color:var(--primary);box-shadow:inset 0 0 0 1px var(--primary)}
+
+.card--steps{display:none}
+.steps{margin-top:12px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.steps li{padding:10px 11px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line)}
+.steps b{display:block;font-size:11.5px;font-weight:800;color:var(--primary);margin-bottom:2px}
+.steps span{display:block;font-size:11px;color:var(--muted);line-height:1.4}
+.tips{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.tips li{position:relative;padding-left:17px;font-size:11.5px;color:var(--muted);line-height:1.45}
+.tips li::before{content:"";position:absolute;left:4px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--primary-soft-2)}
+
+.start-wrap{padding:14px 16px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:9px;flex:0 0 auto;border-top:1px solid var(--line);background:#fff}
+.btn-start{
+  width:100%;height:58px;border-radius:16px;background:var(--primary);color:#fff;
+  font-size:17px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 8px 20px rgba(80,85,177,.28);transition:transform .12s,background .15s;
+}
+.btn-start:hover{background:var(--primary-dark)}
+.btn-start:active{transform:scale(.985)}
+.btn-start svg{width:20px;height:20px}
+.start-note{font-size:11px;color:var(--muted-2);text-align:center;line-height:1.5}
+
+/* ---------- practice ---------- */
+.screen--practice{overflow:hidden}
+.practice{
+  flex:1;min-height:0;display:grid;gap:10px;padding:10px 12px 8px;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(150px,1fr) auto auto auto;
+}
+.practice > *{min-width:0}
+.right{display:contents}
+@media (min-width:900px){
+  .practice{
+    display:flex;align-items:center;justify-content:center;gap:34px;
+    padding:30px 40px;max-width:1080px;margin:0 auto;width:100%;
+  }
+  .cam-wrap{flex:0 1 50%;aspect-ratio:4 / 3;max-height:60vh;min-height:0;border-radius:24px}
+  .right{display:flex;flex-direction:column;gap:14px;flex:0 1 45%;min-width:0;max-width:500px}
+  .right .qcard{min-height:0;padding:22px 24px 16px}
+  .right .qcard .qtext{font-size:23px}
+  .right .timer{padding:13px 16px 14px}
+  .right .tm-nums b{font-size:30px}
+  .right .stop-wrap{margin-top:2px}
+}
+
+/* camera */
+.cam-wrap{
+  position:relative;min-height:0;border-radius:20px;overflow:hidden;background:#101117;
+  border:1px solid #22242E;box-shadow:var(--shadow);isolation:isolate;
+}
+.cam-wrap video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#101117;
+  transform:scaleX(-1);
+}
+.cam-wrap.no-mirror video{transform:none}
+.cam-empty{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  color:#C9CCD8;font-size:12.5px;font-weight:600;text-align:center;padding:18px;line-height:1.5;
+}
+.cam-empty svg{width:34px;height:34px;opacity:.5}
+.cam-wrap.is-live .cam-empty{display:none}
+.cam-badge{
+  position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:6px;
+  padding:5px 9px;border-radius:999px;background:rgba(12,13,18,.55);color:#fff;
+  font-size:10.5px;font-weight:700;letter-spacing:.02em;backdrop-filter:blur(6px);
+}
+.cam-badge .dot{width:6px;height:6px;border-radius:50%;background:#FF5A5F;box-shadow:0 0 0 3px rgba(255,90,95,.22);animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.cam-tools{position:absolute;top:9px;right:9px;display:flex;gap:6px}
+.cam-tool{
+  height:29px;padding:0 10px;border-radius:999px;background:rgba(12,13,18,.5);color:#fff;
+  font-size:11px;font-weight:700;backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.16);
+}
+.cam-tool[aria-pressed="true"]{background:rgba(80,85,177,.9);border-color:rgba(255,255,255,.35)}
+.cam-note{
+  position:absolute;left:9px;right:9px;bottom:9px;padding:9px 11px;border-radius:12px;
+  background:rgba(255,247,237,.96);border:1px solid #F3D8AE;color:#8A5A12;
+  font-size:11px;line-height:1.45;font-weight:600;
+}
+.cam-note b{font-weight:800}
+
+/* question */
+.qcard{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  padding:13px 14px 12px;box-shadow:var(--shadow-sm);min-height:0;display:flex;flex-direction:column;
+}
+@media (min-width:900px){.qcard{padding:20px 22px 16px}}
+.qmeta{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--muted)}
+.qmeta .count{font-variant-numeric:tabular-nums}
+.pill{padding:3px 8px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.01em}
+.pill--tail{background:var(--warn-soft);color:var(--warn)}
+.pill--main{background:var(--primary-soft);color:var(--primary)}
+.qtag{
+  margin-top:8px;display:inline-flex;max-width:100%;padding:4px 9px;border-radius:8px;
+  background:var(--surface-2);border:1px solid var(--line);color:var(--muted);
+  font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.qtext{
+  margin-top:9px;font-size:clamp(15.5px,4.5vw,19px);line-height:1.42;font-weight:700;letter-spacing:-.025em;
+  color:var(--ink);word-break:keep-all;overflow-wrap:anywhere;
+}
+@media (min-width:900px){.qtext{font-size:22px;line-height:1.44;margin-top:12px}}
+.qparent{
+  margin-top:6px;font-size:11px;color:var(--muted-2);line-height:1.4;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.qactions{display:flex;gap:7px;margin-top:auto;padding-top:10px}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:5px;height:33px;padding:0 11px;border-radius:9px;
+  border:1px solid var(--line-2);background:#fff;font-size:11.5px;font-weight:700;color:var(--ink-2);
+}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
+.btn-ghost svg{width:14px;height:14px}
+.btn-ghost[aria-pressed="true"]{background:var(--primary-soft);border-color:var(--primary);color:var(--primary)}
+
+/* timer */
+.timer{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:11px 14px 12px;box-shadow:var(--shadow-sm)}
+.tm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;font-weight:700;color:var(--muted)}
+.tm-head .state{display:inline-flex;align-items:center;gap:6px}
+.tm-head .state .d{width:6px;height:6px;border-radius:50%;background:var(--muted-2)}
+.tm-head.live .state .d{background:var(--primary);animation:blink 1.6s infinite}
+.tm-head.live .state{color:var(--primary)}
+.tm-nums{display:flex;align-items:flex-end;justify-content:space-between;margin-top:5px}
+.tm-nums .cell{display:flex;flex-direction:column;gap:1px}
+.tm-nums .cell.right{align-items:flex-end}
+.tm-nums small{font-size:10px;font-weight:700;color:var(--muted-2);letter-spacing:.01em}
+.tm-nums b{font-size:27px;line-height:1.05;font-weight:800;letter-spacing:-.03em;color:var(--ink)}
+.tm-nums .cell.right b{color:var(--primary)}
+.timer.is-warn .tm-nums .cell.right b{color:var(--warn)}
+.timer.is-over .tm-nums .cell.right b{color:var(--danger)}
+.bar{margin-top:9px;height:7px;border-radius:999px;background:#EDEEF5;overflow:hidden}
+.bar i{display:block;height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#6E73CE,#5055B1);transition:width .12s linear}
+.timer.is-warn .bar i{background:linear-gradient(90deg,#E0A64B,#B26A00)}
+.timer.is-over .bar i{background:linear-gradient(90deg,#DE7A70,#C0362C)}
+
+/* stop */
+.stop-wrap{display:flex;flex-direction:column;gap:6px}
+.btn-stop{
+  width:100%;height:60px;border-radius:17px;background:var(--primary);color:#fff;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  font-size:17.5px;font-weight:800;letter-spacing:-.025em;
+  box-shadow:0 10px 22px rgba(80,85,177,.26);transition:transform .12s,background .15s;
+}
+.btn-stop:hover{background:var(--primary-dark)}
+.btn-stop:active{transform:scale(.988)}
+.btn-stop svg{width:22px;height:22px}
+.btn-stop[disabled]{opacity:.6;box-shadow:none}
+.stop-sub{text-align:center;font-size:10.5px;color:var(--muted-2);font-weight:600}
+
+@media (max-width:899px){
+  .hero{padding:18px 18px 16px}
+  .hero h1{font-size:23px}
+  .hero p{margin-top:7px;font-size:12.5px;line-height:1.46}
+  .hero-stats{margin-top:12px;gap:7px}
+  .hero-stat{padding:8px 10px}
+  .hero-stat b{font-size:16px}
+  .setup-body{padding:13px 14px 4px;gap:10px}
+  .card{padding:13px 14px 12px}
+  .tips li:nth-child(3){display:none}
+  .practice{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+  .btn-stop{height:56px;font-size:16.5px}
+  .tm-nums b{font-size:24px}
+}
+
+/* ---------- result ---------- */
+.result-wrap{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 8px}
+@media (min-width:900px){.result-wrap{padding:24px 36px 12px;max-width:860px;width:100%;margin:0 auto}}
+.result-head{padding:6px 2px 14px}
+.result-head .kicker{display:inline-block;padding:4px 9px;border-radius:999px;background:var(--primary-soft);color:var(--primary);font-size:11px;font-weight:800;margin-bottom:9px}
+.result-head h2{font-size:23px;font-weight:800;letter-spacing:-.035em;line-height:1.28}
+.result-head p{margin-top:6px;font-size:12.5px;color:var(--muted)}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+@media (min-width:640px){.sumgrid{grid-template-columns:repeat(4,1fr)}}
+.sumcell{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow-sm)}
+.sumcell small{display:block;font-size:10.5px;font-weight:700;color:var(--muted-2)}
+.sumcell b{display:block;margin-top:2px;font-size:19px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.rec-list{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm)}
+.rec-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);font-size:12px;font-weight:800}
+.rec-head span{color:var(--muted);font-weight:700;font-size:11px}
+.rec{display:flex;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:0}
+.rec-no{
+  flex:0 0 24px;width:24px;height:24px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;
+}
+.rec-main{flex:1;min-width:0}
+.rec-tag{font-size:10.5px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec-q{margin-top:2px;font-size:12.5px;font-weight:600;line-height:1.45;color:var(--ink-2);word-break:keep-all;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rec-side{flex:0 0 auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.rec-time{font-size:13.5px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.badge{padding:2px 7px;border-radius:999px;font-size:9.5px;font-weight:800;letter-spacing:.01em}
+.badge--auto{background:var(--ok-soft);color:var(--ok)}
+.badge--stop{background:var(--primary-soft);color:var(--primary)}
+.badge--skip{background:#F1F2F7;color:var(--muted)}
+.rec-tail .rec-tag{color:var(--warn)}
+.result-actions{display:flex;flex-direction:column;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));flex:0 0 auto;border-top:1px solid var(--line);background:#fff}
+@media (min-width:640px){.result-actions{flex-direction:row;padding:14px 36px calc(14px + env(safe-area-inset-bottom))}}
+@media (min-width:900px){.result-actions{max-width:860px;width:100%;margin:0 auto;border-top:0}}
+.btn-primary{
+  flex:1;height:52px;border-radius:15px;background:var(--primary);color:#fff;font-size:15.5px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 8px 18px rgba(80,85,177,.24);
+}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{
+  flex:1;height:52px;border-radius:15px;background:#fff;border:1px solid var(--line-2);color:var(--ink-2);
+  font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+.btn-link{display:inline;padding:0 2px;height:auto;font-size:12px;font-weight:700;color:var(--primary);text-decoration:underline;text-underline-offset:3px;vertical-align:baseline}
+
+/* footer */
+.foot{flex:0 0 auto;padding:9px 14px calc(9px + env(safe-area-inset-bottom));text-align:center;font-size:10.5px;color:var(--muted-2);border-top:1px solid var(--line);background:#fff}
+.foot b{font-weight:700;color:var(--muted)}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);opacity:0;pointer-events:none;
+  padding:10px 16px;border-radius:12px;background:rgba(21,22,28,.92);color:#fff;font-size:12.5px;font-weight:700;
+  transition:.2s;z-index:60;max-width:86vw;text-align:center;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="6" width="13" height="12" rx="3"></rect><path d="M15.5 10.5 21 7.5v9l-5.5-3z"></path>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <strong>셀카 랜덤 모의면접</strong>
+        <small id="barSub">아주대 행정학과 · 생기부 질문</small>
+      </span>
+    </div>
+    <button class="btn-quiet" id="btnEndTop" hidden type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      면접 종료
+    </button>
+  </header>
+
+  <main>
+    <!-- ============ LOCK ============ -->
+    <section class="screen is-active" id="screen-lock" aria-label="비밀번호 입력">
+      <div class="lock-wrap">
+        <div class="lock-card" id="lockCard">
+          <span class="lock-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10.5" rx="3"></rect><path d="M8 10V7.5a4 4 0 0 1 8 0V10"></path><circle cx="12" cy="15.2" r="1.2" fill="currentColor" stroke="none"></circle></svg>
+          </span>
+          <div class="lock-head">
+            <h1>셀카 랜덤 모의면접</h1>
+            <p>4자리 비밀번호를 입력해 주세요</p>
+          </div>
+          <div class="dots" id="lockDots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <p class="lock-msg" id="lockMsg" role="status" aria-live="polite">숫자를 눌러 입력해 주세요</p>
+          <div class="keypad" id="keypad" role="group" aria-label="숫자 키패드">
+            <button class="key" type="button" data-k="1">1</button>
+            <button class="key" type="button" data-k="2">2</button>
+            <button class="key" type="button" data-k="3">3</button>
+            <button class="key" type="button" data-k="4">4</button>
+            <button class="key" type="button" data-k="5">5</button>
+            <button class="key" type="button" data-k="6">6</button>
+            <button class="key" type="button" data-k="7">7</button>
+            <button class="key" type="button" data-k="8">8</button>
+            <button class="key" type="button" data-k="9">9</button>
+            <button class="key key--fn" type="button" data-k="clear">전체</button>
+            <button class="key" type="button" data-k="0">0</button>
+            <button class="key key--fn" type="button" data-k="del" aria-label="한 자리 지우기">지움</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SETUP ============ -->
+    <section class="screen" id="screen-setup" aria-label="연습 설정">
+      <div class="setup-wrap">
+        <div class="hero">
+          <span class="kicker">면접 실전 연습</span>
+          <h1>셀카 보면서<br>랜덤 질문에 답해 보세요</h1>
+          <p>질문을 음성으로 읽어 주고, 읽기가 끝나면 1분 30초 답변 타이머가 시작됩니다. 중간에 스탑을 누르면 바로 다음 질문으로 넘어가요.</p>
+          <div class="hero-stats">
+            <div class="hero-stat"><b id="statTotal">65</b><span>기본 질문</span></div>
+            <div class="hero-stat"><b>30</b><span>꼬리질문</span></div>
+            <div class="hero-stat"><b>90초</b><span>답변 시간</span></div>
+          </div>
+        </div>
+
+        <div class="setup-body">
+          <div class="card">
+            <h2><span class="num">1</span>카메라 확인</h2>
+            <p class="hint">시작 전에 셀카가 잘 켜지는지 먼저 확인해 보세요.</p>
+            <div class="camtest">
+              <div class="camtest-preview" id="camTestPrev">
+                <video id="camTestVideo" autoplay playsinline webkit-playsinline muted></video>
+                <button class="camtest-close" id="btnCamTestClose" type="button" aria-label="미리보기 끄기">×</button>
+              </div>
+              <div class="camtest-row">
+                <button class="btn-check" id="btnCamTest" type="button">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="3"></rect><path d="M15.5 10.5 21 7.5v9l-5.5-3z"></path></svg>
+                  <span id="camTestBtnLabel">카메라 권한 확인 · 미리보기</span>
+                </button>
+                <span class="perm-tag" id="camPermTag" data-state="unknown">권한 확인 중</span>
+              </div>
+              <div class="camtest-state" id="camTestState">
+                <span class="dotm"></span>
+                <span id="camTestMsg">아직 확인하지 않았어요. 버튼을 누르면 셀카가 켜집니다.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2><span class="num">2</span>질문 범위</h2>
+            <p class="hint">같은 활동을 다룬 문항은 한 번만 나오도록 정리했습니다.</p>
+            <div class="seg" role="radiogroup" aria-label="질문 범위">
+              <label><input type="radio" name="scope" value="all" checked><span>전체<small id="segAll">65문항</small></span></label>
+              <label><input type="radio" name="scope" value="top35"><span>TOP35<small>아주대</small></span></label>
+              <label><input type="radio" name="scope" value="set30"><span>30선<small>생기부</small></span></label>
+            </div>
+
+            <div class="rowline">
+              <div>
+                <div class="lbl">꼬리질문 포함</div>
+                <div class="sub" id="tailSub">질문 답변 뒤에 꼬리질문이 이어집니다</div>
+              </div>
+              <button class="switch" id="swTail" role="switch" aria-checked="true" aria-label="꼬리질문 포함"></button>
+            </div>
+
+            <div class="rowline">
+              <div>
+                <div class="lbl">질문 음성으로 읽기</div>
+                <div class="sub">한국어 음성 지원이 없으면 자동으로 타이머만 진행</div>
+              </div>
+              <button class="switch" id="swVoice" role="switch" aria-checked="true" aria-label="질문 음성으로 읽기"></button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2><span class="num">3</span>답변 시간</h2>
+            <p class="hint">질문 읽기가 끝난 시점부터 시간이 갑니다.</p>
+            <div class="chips" role="group" aria-label="답변 시간">
+              <button class="chip-opt" data-limit="60" type="button" aria-pressed="false">1분</button>
+              <button class="chip-opt" data-limit="90" type="button" aria-pressed="true">1분 30초</button>
+              <button class="chip-opt" data-limit="120" type="button" aria-pressed="false">2분</button>
+            </div>
+            <ul class="tips">
+              <li>스탑을 누르면 걸린 시간이 기록되고 다음 질문으로 넘어갑니다.</li>
+              <li>카메라 권한을 거부해도 질문·타이머 연습은 그대로 됩니다.</li>
+              <li>휴대폰은 세워 두고, 셀카에 눈을 두고 답해 보세요.</li>
+            </ul>
+          </div>
+
+          <div class="card card--steps">
+            <h2><span class="num">4</span>진행 방식</h2>
+            <ol class="steps">
+              <li><b>질문 읽기</b><span>한국어 음성 · 다시 듣기</span></li>
+              <li><b>답변 타이머</b><span>읽기 끝나면 1분 30초</span></li>
+              <li><b>스탑 / 자동</b><span>기록하고 다음 질문으로</span></li>
+              <li><b>면접 종료</b><span>질문별 답변 시간 확인</span></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+      <div class="start-wrap">
+        <button class="btn-start" id="btnStart" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.9l10.2-6.8c.6-.4.6-1.4 0-1.8L9.6 4.3C8.9 3.9 8 4.4 8 5.2z"/></svg>
+          면접 시작
+        </button>
+        <p class="start-note">시작을 누르면 카메라 사용 권한을 요청합니다 · © 2026 곽인아 제작 · 출처 표기 후 사용 가능</p>
+      </div>
+    </section>
+
+    <!-- ============ PRACTICE ============ -->
+    <section class="screen screen--practice" id="screen-practice" aria-label="면접 연습">
+      <div class="practice">
+        <div class="cam-wrap is-mirror" id="camWrap">
+          <video id="cam" autoplay playsinline webkit-playsinline muted disablepictureinpicture></video>
+          <div class="cam-empty" id="camEmpty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="3"></rect><path d="M15.5 10.5 21 7.5v9l-5.5-3z"></path></svg>
+            <span id="camEmptyText">카메라를 준비하고 있어요</span>
+          </div>
+          <div class="cam-badge"><span class="dot"></span>셀카</div>
+          <div class="cam-tools">
+            <button class="cam-tool" id="btnMirror" type="button" aria-pressed="true">거울</button>
+            <button class="cam-tool" id="btnCamRetry" type="button" hidden>다시 시도</button>
+          </div>
+          <div class="cam-note" id="camNote" hidden></div>
+        </div>
+
+        <div class="right">
+        <div class="qcard">
+          <div class="qmeta">
+            <span class="pill pill--main" id="qKind">질문</span>
+            <span class="pill pill--female" id="qVoice">여성 면접관</span>
+            <span class="count" id="qIndex">1 / 20</span>
+            <span id="qSetName" style="color:var(--muted-2)"></span>
+          </div>
+          <span class="qtag" id="qTag">과목 · 활동</span>
+          <p class="qtext" id="qText" aria-live="polite">질문을 불러오는 중…</p>
+          <p class="qparent" id="qParent" hidden></p>
+          <div class="qactions">
+            <button class="btn-ghost" id="btnRepeat" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+              다시 듣기
+            </button>
+            <button class="btn-ghost" id="btnMute" type="button" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6.5 9H3v6h3.5L11 19z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+              <span id="muteLabel">소리 끄기</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="timer" id="timer">
+          <div class="tm-head" id="tmHead">
+            <span class="state"><span class="d"></span><span id="tmState">질문을 읽는 중</span></span>
+            <span>답변 제한 <span id="tmLimit" class="tnum">01:30</span></span>
+          </div>
+          <div class="tm-nums">
+            <div class="cell"><small>경과</small><b id="elapsed" class="tnum">00:00</b></div>
+            <div class="cell right"><small>남은 시간</small><b id="remaining" class="tnum">01:30</b></div>
+          </div>
+          <div class="bar"><i id="barFill"></i></div>
+        </div>
+
+        <div class="stop-wrap">
+          <button class="btn-stop" id="btnStop" type="button">
+            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2.4"></rect></svg>
+            스탑 · 다음 질문
+          </button>
+          <p class="stop-sub">답변이 끝났으면 바로 눌러 주세요 · 자동으로 넘어갈 때는 시간이 기록됩니다</p>
+        </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RESULT ============ -->
+    <section class="screen" id="screen-result" aria-label="연습 기록">
+      <div class="result-wrap">
+        <div class="result-head">
+          <span class="kicker" id="resKicker">오늘의 연습</span>
+          <h2 id="resTitle">면접 연습을 마쳤어요</h2>
+          <p id="resSub">질문별 답변 시간을 확인해 보세요. <button class="btn-link" id="btnCopy" type="button">기록 복사</button></p>
+        </div>
+        <div class="sumgrid">
+          <div class="sumcell"><small>답한 질문</small><b id="sumCount">0</b></div>
+          <div class="sumcell"><small>총 답변 시간</small><b id="sumTotal">00:00</b></div>
+          <div class="sumcell"><small>평균 답변</small><b id="sumAvg">00:00</b></div>
+          <div class="sumcell"><small>시간 다 채움</small><b id="sumFull">0</b></div>
+        </div>
+        <div class="rec-list">
+          <div class="rec-head">질문별 기록 <span id="resScope"></span></div>
+          <div id="recList"></div>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-primary" id="btnAgain" type="button">같은 설정으로 다시</button>
+        <button class="btn-secondary" id="btnSetup" type="button">범위 바꾸기</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">© 2026 <b>곽인아</b> 제작 · 출처 표기 후 사용 가능</footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =====================================================================
+   셀카 랜덤 모의면접 — 생기부 기반 면접 질문 연습기
+   자료: 사진 19장(아주대 행정학과 예상질문 TOP35 + 생기부 기반 30선/꼬리질문 30)
+   ===================================================================== */
+const DATA = {"version":"2026-11-24","sets":[{"id":"top35","name":"아주대 행정학과 TOP35","short":"TOP35","desc":"생기부 기반 예상질문 TOP35 (모범답변 포함 원문)","count":35},{"id":"set30","name":"생기부 예상질문 30선","short":"30선","desc":"김예은 학생 생기부 기반 30선 + 꼬리질문 30","count":30}],"questions":[{"id":"t01","set":"top35","no":1,"topic":"career","tag":"진로희망 변화(1학년 범죄 수사 → 2학년 프로파일러 → 3학년 법학) 및 진로활동 전반","q":"생기부를 보면 진로희망이 범죄 수사, 프로파일러, 법학으로 바뀌었는데, 진로가 바뀐 이유와 그 과정에서 달라진 점을 설명해 보세요."},{"id":"t02","set":"top35","no":2,"topic":"why-admin","tag":"진로 연계 탐구활동 종합(3학년 화법과 작문, 사회·문화, 생활과 윤리 등)","q":"법과 범죄에 관심이 많은데 법학과가 아니라 행정학과를 선택한 이유는 무엇인가요?"},{"id":"t03","set":"top35","no":3,"topic":"plan","tag":"전공 연계 학업계획 및 진로계획(아주대 행정학과 교육과정, 졸업생 진로 자료 연계)","q":"아주대 행정학과에서 어떤 공부를 하고 싶고, 졸업 후에는 어떤 일을 하고 싶은지 말해 보세요."},{"id":"t04","set":"top35","no":4,"topic":"leadership","tag":"2학년 창체 자율활동(학급 학생자치회 회장) · 3학년 창체 자율활동(학급 학생자치회 부회장) · 행동특성","q":"2학년 때는 학급 학생자치회 회장, 3학년 때는 부회장으로 활동했는데, 리더로서 가장 중요하게 생각한 것과 배운 점을 말해 보세요."},{"id":"t05","set":"top35","no":5,"topic":"mockingbird","tag":"3학년 사회·문화 · 「앵무새 죽이기」 독서 후속 탐구(법률서비스 접근성)","q":"「앵무새 죽이기」를 읽고 법률서비스 접근성 격차를 탐구했다고 하는데, 어떤 내용이었나요?"},{"id":"t06","set":"top35","no":6,"topic":"tracking","tag":"3학년 화법과 통계 · 위치 추적 제도 재범률 통계 분석","q":"특정 범죄자 위치 추적 제도의 재범률을 통계 분석하며 인과관계를 단정할 수 없다고 비판했다고 하는데, 설명해 보세요."},{"id":"t07","set":"top35","no":7,"topic":"cctv","tag":"3학년 생활과 윤리 · 함께 만드는 스마트 시티 프로젝트(AI 기반 스마트 CCTV와 기본권)","q":"'AI 기반 스마트 CCTV 및 기본권 보호 방안'을 탐구했다고 하는데, 어떤 내용이었나요?"},{"id":"t08","set":"top35","no":8,"topic":"juvenile","tag":"3학년 화법과 작문 · 건의문 작성 활동(촉법소년 상한 연령 조정)","q":"건의문에서 촉법소년 상한 연령 조정을 주제로 글을 썼다고 하는데, 어떻게 논증했나요?"},{"id":"t09","set":"top35","no":9,"topic":"platform","tag":"3학년 창체 · 자율활동(플랫폼의 정보 왜곡과 기업 책임)","q":"플랫폼의 정보 왜곡과 법적 문제에서 기업의 책임을 물었다고 하는데, 어떤 논리였나요?"},{"id":"t10","set":"top35","no":10,"topic":"wastewater","tag":"3학년 창체 · 동아리활동(4H 경제경영탐구부 – 시사 이슈 비판적 읽기)","q":"기업의 폐수 무단 배출 판결을 분석하며 사법 정의와 행정 규제의 관계를 탐구했다고 하는데, 설명해 보세요."},{"id":"t11","set":"top35","no":11,"topic":"yunchangho","tag":"3학년 창체 · 동아리활동(4H 경제경영탐구부 – 법경제학적 사례 분석하기, 윤창호법)","q":"윤창호법을 법경제학적으로 분석하고 음주 시동잠금장치 도입을 제안했다고 하는데, 어떤 내용인가요?"},{"id":"t12","set":"top35","no":12,"topic":"tax","tag":"2학년 수학Ⅱ · 연속 단원 교과서 수학 가치 기르기 활동(세율 함수)","q":"세율 함수를 연속적으로 설계해 세금 급등을 방지하는 과정을 입법 과정과 연결했다고 하는데, 설명해 보세요."},{"id":"t13","set":"top35","no":13,"topic":"marginal","tag":"2학년 수학Ⅱ · 미분 단원 활동(한계비용과 복지 예산)","q":"미분 단원에서 한계비용 개념을 복지 정책 예산 집행에 적용했다고 하는데, 어떻게 연결했나요?"},{"id":"t14","set":"top35","no":14,"topic":"deathpenalty","tag":"2학년 정치와 법 · 사형제 탐구(+2학년 진로이슈탐색, 3학년 생활과 윤리 연결)","q":"사형제 존치를 지지하다가 탐구 과정에서 입장을 바꾸었다고 하는데, 그 과정을 설명해 보세요."},{"id":"t15","set":"top35","no":15,"topic":"whistleblower","tag":"3학년 생태와 환경 · 지속가능발전목표와 진로 연결 주제 발표(공익 제보자 보호)","q":"지속가능발전목표 16번과 진로를 연결해 공익 제보자 보호를 발표했다고 하는데, 설명해 보세요."},{"id":"t16","set":"top35","no":16,"topic":"dwarf","tag":"3학년 고전 읽기 · 「난장이가 쏘아올린 작은 공」 서평 쓰기","q":"소설을 읽고 환경적 불평등 문제를 분석하고 제도적 대안을 제시했다고 하는데, 설명해 보세요."},{"id":"t17","set":"top35","no":17,"topic":"foodtruck","tag":"3학년 영어권 문화 · 영어권 문화 학습(미국 푸드트럭 문화와 법·제도의 변화)","q":"미국 푸드트럭 문화를 조사하며 법과 제도의 변화를 이해했다고 하는데, 어떤 내용인가요?"},{"id":"t18","set":"top35","no":18,"topic":"microplastic","tag":"3학년 미술 감상과 비평 · 인포그래픽 제작 활동(미세플라스틱의 환경 문제와 국가별 정책 비교)","q":"미세플라스틱의 환경 문제와 국가별 정책을 비교하는 인포그래픽을 만들었다고 하는데, 설명해 보세요."},{"id":"t19","set":"top35","no":19,"topic":"andong","tag":"1학년 한국사 · 답사 계획 수립 활동(안동 답사)","q":"안동의 도산서원과 하회마을을 답사지로 정해 공동체의 자치 규율과 법적 역할을 분석했다고 하는데, 설명해 보세요."},{"id":"t20","set":"top35","no":20,"topic":"bentham","tag":"1학년 통합사회 · 벤담의 공리주의 탐구","q":"벤담의 공리주의를 탐구하고 공공 보건 정책과 공교육 시스템에 연결했다고 하는데, 설명해 보세요."},{"id":"t21","set":"top35","no":21,"topic":"devcoop","tag":"2학년 창체 · 자율활동(국제개발협력 강연)","q":"국제개발협력을 처음 접하고 관심을 갖게 되었다고 했는데, 어떤 점이 인상 깊었고 어떤 실천을 다짐했나요?"},{"id":"t22","set":"top35","no":22,"topic":"profiling","tag":"1학년 창체 · 진로활동(진로이슈탐색활동)","q":"빅데이터와 AI를 활용한 프로파일링의 문제점을 탐구했다고 되어 있는데, 어떤 내용인지 설명해 보세요."},{"id":"t23","set":"top35","no":23,"topic":"silentspring","tag":"2학년 독서 · 심화 독서(「침묵의 봄」)","q":"「침묵의 봄」을 읽고 공권력 행사의 최소 침해 원칙과 연결했다고 하는데, 어떤 생각이었는지 설명해 보세요."},{"id":"t24","set":"top35","no":24,"topic":"namhansanseong","tag":"2학년 문학 · 「남한산성」 비평 활동","q":"「남한산성」 비평 활동에서 명분과 실리를 다루었다고 하는데, 어떤 내용이었나요?"},{"id":"t25","set":"top35","no":25,"topic":"stalking","tag":"3학년 창체 · 진로활동(진로탐색 심화, 스토킹 범죄 현황과 법적 대응)","q":"'스토킹 범죄 현황과 법적 대응'을 발표하면서 사후 처벌과 피해자 기본권 보장 사이의 딜레마를 분석했다고 하는데, 설명해 보세요."},{"id":"t26","set":"top35","no":26,"topic":"noise","tag":"3학년 창체 · 자율활동(일상 속 SDGs 실천 웹앱 제작, 소음 측정)","q":"일상 속 SDGs 실천 웹앱을 제작하면서 소음 문제를 다뤘다고 하는데, 설명해 보세요."},{"id":"t27","set":"top35","no":27,"topic":"buglab","tag":"3학년 생활과 윤리 · 환경 문제 해결 그린 바이오 활동(웹앱 '벌레랩' 개발)","q":"해충 정보를 공유하는 웹앱 '벌레랩'을 개발하며 공공데이터의 중요성을 깨달았다고 하는데, 설명해 보세요."},{"id":"t28","set":"top35","no":28,"topic":"aicoexist","tag":"2학년 영어Ⅱ · 미래 사회 문제 해결 정책 제안 활동(인간과 AI의 공존)","q":"인간과 인공지능의 공존을 주제로 정책을 영어로 제안했다고 하는데, 어떤 내용이었나요?"},{"id":"t29","set":"top35","no":29,"topic":"gun","tag":"3학년 영어Ⅰ · 주제탐구발표(미국 청소년 총기 사건)","q":"영어Ⅰ 주제탐구발표에서 미국 청소년 총기 사건의 심리 분석과 해결방안을 발표했다고 하는데, 어떤 내용인가요?"},{"id":"t30","set":"top35","no":30,"topic":"contract","tag":"2학년 윤리와 사상 · 사회계약론 심화 탐구","q":"홉스, 로크, 루소의 사회계약론을 비교하고 현대 사회의 사례로 정당성과 한계를 탐구했다고 하는데, 설명해 보세요."},{"id":"t31","set":"top35","no":31,"topic":"victim","tag":"1학년 창체 · 진로활동(생명존중실천방안)","q":"범죄 피해자를 위한 '극복 프로그램'이라는 심리 지원 프로그램을 구상했다고 하는데, 어떤 프로그램이고 왜 필요하다고 생각했나요?"},{"id":"t32","set":"top35","no":32,"topic":"leadership","tag":"2학년 행동특성 및 종합의견 · 학급자치회 회장, 협력반장 활동","q":"학급자치회 회장과 협력반장을 하면서 리더로서 가장 중요하게 생각한 것은 무엇이었나요?"},{"id":"t33","set":"top35","no":33,"topic":"peer","tag":"1학년/2학년 창체 동아리활동(또래상담부, 2학년 차장)","q":"1학년 또래상담부 활동과 2학년 차장으로서의 활동에서 배운 점은 무엇이고, 진로와 어떻게 연결되나요?"},{"id":"t34","set":"top35","no":34,"topic":"japan","tag":"3학년 일본어 회화Ⅰ · 진로 연계 사회 이슈 탐구(일본의 고의적 충돌 행위)","q":"일본의 고의적 충돌 행위를 주제로 진로 연계 탐구를 했다고 하는데, 설명해 보세요."},{"id":"t35","set":"top35","no":35,"topic":"metaverse","tag":"2학년 학교자율과정 · '맛서는 지식, 확장한 사고' 프로젝트(메타버스 치료 서비스의 법적 책임)","q":"학교자율과정에서 메타버스 치료 서비스의 법적 책임을 분석했다고 하는데, 어떤 내용인지 설명해 보세요."},{"id":"s01","set":"set30","no":1,"topic":"profiling","tag":"1학년 창체 · 진로활동(진로이슈탐색활동)","q":"빅데이터와 AI를 활용한 프로파일링의 문제점을 탐구했다고 되어 있는데, 어떤 내용인지 설명해 보세요.","tail":"알고리즘 투명성을 확보하자고 했는데, 공공기관이 AI를 정책에 활용할 때 구체적으로 어떤 제도가 필요하다고 생각하나요?"},{"id":"s02","set":"set30","no":2,"topic":"victim","tag":"1학년 창체 · 진로활동(생명존중실천방안)","q":"범죄 피해자를 위한 '극복 프로그램'이라는 심리 지원 프로그램을 구상했다고 하는데, 어떤 프로그램이고 왜 필요하다고 생각했나요?","tail":"아이디어가 좋더라도 공공정책으로 실행하려면 어떤 점을 고려해야 할까요?"},{"id":"s03","set":"set30","no":3,"topic":"andong","tag":"1학년 한국사 · 답사 계획 수립 활동(안동 답사)","q":"안동의 도산서원과 하회마을을 답사지로 정해 공동체의 자치 규율과 법적 역할을 분석했다고 하는데, 설명해 보세요.","tail":"오늘날 도시 사회에서는 그런 공동체가 약해졌는데, 이 아이디어를 현대 행정에 어떻게 적용할 수 있을까요?"},{"id":"s04","set":"set30","no":4,"topic":"quadratic","tag":"1학년 수학 · 범죄 예방과 이차함수 탐구활동","q":"범죄 예방과 이차함수의 관련성을 탐구했다고 하는데, 어떻게 탐구했고 무엇을 알게 되었나요?","tail":"실제 범죄는 이차함수 하나로 설명하기 어려울 텐데, 이 모델의 한계는 무엇이고 어떻게 보완할 수 있나요?"},{"id":"s05","set":"set30","no":5,"topic":"bentham","tag":"1학년 통합사회 · 벤담의 공리주의 탐구","q":"벤담의 공리주의를 탐구하고 공공 보건 정책과 공교육 시스템에 연결했다고 하는데, 설명해 보세요.","tail":"공리주의는 소수의 희생을 정당화할 수 있다는 비판이 있는데, 정책 결정에서 이를 어떻게 보완해야 할까요?"},{"id":"s06","set":"set30","no":6,"topic":"devcoop","tag":"2학년 창체 · 자율활동(국제개발협력 강연)","q":"국제개발협력을 처음 접하고 관심을 갖게 되었다고 했는데, 어떤 점이 인상 깊었고 어떤 실천을 다짐했나요?","tail":"개인의 작은 실천만으로는 한계가 있을 텐데, 정부의 역할은 무엇이라고 생각하나요?"},{"id":"s07","set":"set30","no":7,"topic":"silentspring","tag":"2학년 독서 · 심화 독서(「침묵의 봄」)","q":"「침묵의 봄」을 읽고 공권력 행사의 최소 침해 원칙과 연결했다고 하는데, 어떤 생각이었는지 설명해 보세요.","tail":"공권력의 필요성과 국민의 권리 사이의 균형을 판단하는 구체적인 기준이 있다면 무엇이라고 생각하나요?"},{"id":"s08","set":"set30","no":8,"topic":"namhansanseong","tag":"2학년 문학 · 「남한산성」 비평 활동","q":"「남한산성」 비평 활동에서 명분과 실리를 다루었다고 하는데, 어떤 내용이었나요?","tail":"공공정책에서 명분과 실리가 충돌하는 사례를 하나 들고, 어떻게 결정해야 하는지 말해 보세요."},{"id":"s09","set":"set30","no":9,"topic":"tax","tag":"2학년 수학Ⅱ · 연속 단원 교과서 수학 가치 기르기 활동(세율 함수)","q":"세율 함수를 연속적으로 설계해 세금 급등을 방지하는 과정을 입법 과정과 연결했다고 하는데, 설명해 보세요.","tail":"그렇다면 현실의 복지 제도에도 비슷한 문제가 있을 수 있나요?"},{"id":"s10","set":"set30","no":10,"topic":"marginal","tag":"2학년 수학Ⅱ · 미분 단원 활동(한계비용과 복지 예산)","q":"미분 단원에서 한계비용 개념을 복지 정책 예산 집행에 적용했다고 하는데, 어떻게 연결했나요?","tail":"효율성만으로 복지를 판단하면 안 될 것 같은데, 어떻게 생각하나요?"},{"id":"s11","set":"set30","no":11,"topic":"deathpenalty","tag":"2학년 정치와 법 · 사형제 탐구(+2학년 진로이슈탐색, 3학년 생활과 윤리 연결)","q":"사형제 존치를 지지하다가 탐구 과정에서 입장을 바꾸었다고 하는데, 그 과정을 설명해 보세요.","tail":"절대적 종신형을 도입하면 현실에서 어떤 문제가 생길 수 있고, 어떻게 보완해야 하나요?"},{"id":"s12","set":"set30","no":12,"topic":"contract","tag":"2학년 윤리와 사상 · 사회계약론 심화 탐구","q":"홉스, 로크, 루소의 사회계약론을 비교하고 현대 사회의 사례로 정당성과 한계를 탐구했다고 하는데, 설명해 보세요.","tail":"이론들이 오늘날 행정이 시민과 맺는 관계에 어떤 시사점을 준다고 생각하나요?"},{"id":"s13","set":"set30","no":13,"topic":"gun","tag":"2학년 영어Ⅰ · 주제탐구발표(미국 청소년 총기 사건)","q":"영어Ⅰ 주제탐구발표에서 미국 청소년 총기 사건의 심리 분석과 해결방안을 발표했다고 하는데, 어떤 내용인가요?","tail":"제시한 네 가지 방안 중 하나만 먼저 시행해야 한다면 어떤 것을 선택하겠습니까?"},{"id":"s14","set":"set30","no":14,"topic":"aicoexist","tag":"2학년 영어Ⅱ · 미래 사회 문제 해결 정책 제안 활동(인간과 AI의 공존)","q":"인간과 인공지능의 공존을 주제로 정책을 영어로 제안했다고 하는데, 어떤 내용이었나요?","tail":"AI 규제는 혁신을 막을 수 있다는 우려도 있습니다. 균형은 어떻게 잡아야 할까요?"},{"id":"s15","set":"set30","no":15,"topic":"leadership","tag":"2학년 행동특성 및 종합의견 · 학급자치회 회장, 협력반장 활동","q":"학급자치회 회장과 협력반장을 하면서 리더로서 가장 중요하게 생각한 것은 무엇이었나요?","tail":"의견이 팽팽히 갈려서 모두를 만족시킬 수 없을 때는 어떻게 결정했나요?"},{"id":"s16","set":"set30","no":16,"topic":"platform","tag":"3학년 창체 · 자율활동(플랫폼의 정보 왜곡과 기업 책임)","q":"플랫폼의 정보 왜곡과 법적 문제에서 기업의 책임을 물었다고 하는데, 어떤 논리였나요?","tail":"플랫폼의 책임을 강화하면 기업 활동이 위축될 수 있는데, 정부는 어떻게 대응해야 할까요?"},{"id":"s17","set":"set30","no":17,"topic":"wastewater","tag":"3학년 창체 · 동아리활동(4H 경제경영탐구부 – 시사 이슈 비판적 읽기)","q":"기업의 폐수 무단 배출 판결을 분석하며 사법 정의와 행정 규제의 관계를 탐구했다고 하는데, 설명해 보세요.","tail":"환경 규제 위반에 대해 형사처벌 말고 행정 제재(과징금, 영업정지 등)를 활용하는 것은 언제 적합하다고 보나요?"},{"id":"s18","set":"set30","no":18,"topic":"yunchangho","tag":"3학년 창체 · 동아리활동(4H 경제경영탐구부 – 법경제학적 사례 분석하기, 윤창호법)","q":"윤창호법을 법경제학적으로 분석하고 음주 시동잠금장치 도입을 제안했다고 하는데, 어떤 내용인가요?","tail":"음주 시동잠금장치를 실제로 도입하려면 어떤 행정적 과제가 있을까요?"},{"id":"s19","set":"set30","no":19,"topic":"stalking","tag":"3학년 창체 · 진로활동(진로탐색 심화, 스토킹 범죄 현황과 법적 대응)","q":"'스토킹 범죄 현황과 법적 대응'을 발표하면서 사후 처벌과 피해자 기본권 보장 사이의 딜레마를 분석했다고 하는데, 설명해 보세요.","tail":"위험성 평가 시스템을 표준화하면 어떤 점이 좋아지고, 어떤 점을 주의해야 할까요?"},{"id":"s20","set":"set30","no":20,"topic":"noise","tag":"3학년 창체 · 자율활동(일상 속 SDGs 실천 웹앱 제작, 소음 측정)","q":"일상 속 SDGs 실천 웹앱을 제작하면서 소음 문제를 다뤘다고 하는데, 설명해 보세요.","tail":"개인이 만든 측정 데이터를 실제 분쟁 해결이나 정책에 활용하려면 어떤 조건이 필요할까요?"},{"id":"s21","set":"set30","no":21,"topic":"tracking","tag":"3학년 화법과 통계 · 위치 추적 제도 재범률 통계 분석","q":"특정 범죄자 위치 추적 제도의 재범률을 통계 분석하며 인과관계를 단정할 수 없다고 비판했다고 하는데, 설명해 보세요.","tail":"그렇다면 정책의 효과를 제대로 평가하려면 어떤 방법을 써야 할까요?"},{"id":"s22","set":"set30","no":22,"topic":"mockingbird","tag":"3학년 사회·문화 · 「앵무새 죽이기」 독서 후속 탐구(법률서비스 접근성)","q":"「앵무새 죽이기」를 읽고 법률서비스 접근성 격차를 탐구했다고 하는데, 어떤 내용이었나요?","tail":"AI 법률 내비게이터를 도입하면 어떤 문제가 생길 수 있고, 어떻게 해결할까요?"},{"id":"s23","set":"set30","no":23,"topic":"juvenile","tag":"3학년 화법과 작문 · 건의문 작성 활동(촉법소년 상한 연령 조정)","q":"건의문에서 촉법소년 상한 연령 조정을 주제로 글을 썼다고 하는데, 어떻게 논증했나요?","tail":"연령을 조정하는 것 외에, 비행 청소년의 재범을 막을 수 있는 다른 정책 수단에는 무엇이 있을까요?"},{"id":"s24","set":"set30","no":24,"topic":"japan","tag":"3학년 일본어 회화Ⅰ · 진로 연계 사회 이슈 탐구(일본의 고의적 충돌 행위)","q":"일본의 고의적 충돌 행위를 주제로 진로 연계 탐구를 했다고 하는데, 설명해 보세요.","tail":"이처럼 새롭게 나타나는 사회 문제에 정부는 어떤 방식으로 대응해야 할까요?"},{"id":"s25","set":"set30","no":25,"topic":"cctv","tag":"3학년 생활과 윤리 · 함께 만드는 스마트 시티 프로젝트(AI 기반 스마트 CCTV와 기본권)","q":"'AI 기반 스마트 CCTV 및 기본권 보호 방안'을 탐구했다고 하는데, 어떤 내용이었나요?","tail":"데이터 보관 기간이나 시민안전위원회의 구성은 어떻게 정해야 한다고 생각하나요?"},{"id":"s26","set":"set30","no":26,"topic":"buglab","tag":"3학년 생활과 윤리 · 환경 문제 해결 그린 바이오 활동(웹앱 '벌레랩' 개발)","q":"해충 정보를 공유하는 웹앱 '벌레랩'을 개발하며 공공데이터의 중요성을 깨달았다고 하는데, 설명해 보세요.","tail":"시민이 올린 데이터의 신뢰성은 어떻게 확보할 수 있을까요?"},{"id":"s27","set":"set30","no":27,"topic":"whistleblower","tag":"3학년 생태와 환경 · 지속가능발전목표와 진로 연계 주제 발표(공익 제보자 보호)","q":"지속가능발전목표 16번과 진로를 연결해 공익 제보자 보호를 발표했다고 하는데, 설명해 보세요.","tail":"제보 보상 제도를 강화하면 악의적이거나 허위인 신고가 늘어날 수 있는데, 어떻게 대응할까요?"},{"id":"s28","set":"set30","no":28,"topic":"foodtruck","tag":"3학년 영어권 문화 · 영어권 문화 학습(미국 푸드트럭 문화와 법·제도의 변화)","q":"미국 푸드트럭 문화를 조사하며 법과 제도의 변화를 이해했다고 하는데, 어떤 내용인가요?","tail":"새로운 산업이 등장했을 때 규제를 언제, 어느 정도로 도입하는 것이 바람직하다고 보나요?"},{"id":"s29","set":"set30","no":29,"topic":"microplastic","tag":"3학년 미술 감상과 비평 · 인포그래픽 제작 활동(미세플라스틱의 환경 문제와 국가별 정책 비교)","q":"미세플라스틱의 환경 문제와 국가별 정책을 비교하는 인포그래픽을 만들었다고 하는데, 설명해 보세요.","tail":"다른 나라의 우수한 정책을 우리나라에 도입할 때 주의할 점은 무엇일까요?"},{"id":"s30","set":"set30","no":30,"topic":"dwarf","tag":"3학년 고전 읽기 · 「난장이가 쏘아올린 작은 공」 서평 쓰기","q":"소설을 읽고 환경적 불평등 문제를 분석하고 제도적 대안을 제시했다고 하는데, 설명해 보세요.","tail":"즉각 보상 제도의 재원은 어떻게 마련하고, 악용을 막으려면 어떻게 해야 할까요?"}]};
+
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const mmss = (sec) => {
+  const s = Math.max(0, Math.round(sec));
+  return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+};
+const shuffle = (arr) => {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+let toastTimer = 0;
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+/* ---------- state ---------- */
+const S = {
+  screen: "setup",
+  scope: "all",
+  includeTail: true,
+  voiceOn: true,
+  limit: 90,          // seconds per answer
+  queue: [],
+  idx: -1,
+  phase: "idle",      // idle | reading | answering | done
+  startedAt: 0,
+  records: [],
+  tickId: 0,
+  camStream: null,
+  camOk: false,
+  mirror: true,
+  speaking: false,
+  wakeLock: null,
+  gender: "female",    // 현재 질문의 면접관 목소리 (male | female)
+  voiceInfo: null,     // 실제로 적용된 pitch/rate/voice (검증용)
+};
+
+/* ---------- question pool ---------- */
+const bySet = (id) => DATA.questions.filter((q) => q.set === id);
+const TOTALS = { all: DATA.questions.length, top35: bySet("top35").length, set30: bySet("set30").length };
+
+function buildQueue() {
+  const pool = S.scope === "top35" ? bySet("top35")
+             : S.scope === "set30" ? bySet("set30")
+             : DATA.questions;
+  // 한 세션에서 같은 활동(주제)이 두 번 나오지 않게
+  const seen = new Set();
+  const picked = [];
+  for (const q of shuffle(pool)) {
+    if (seen.has(q.topic)) continue;
+    seen.add(q.topic);
+    picked.push(q);
+  }
+  const queue = [];
+  for (const q of picked) {
+    queue.push({ kind: "main", item: q });
+    if (S.includeTail && (S.scope !== "top35") && q.tail) {
+      queue.push({ kind: "tail", item: q });
+    }
+  }
+  return queue;
+}
+
+/* ---------- screens ---------- */
+function show(name) {
+  S.screen = name;
+  ["lock", "setup", "practice", "result"].forEach((n) => {
+    $("screen-" + n).classList.toggle("is-active", n === name);
+  });
+  $("btnEndTop").hidden = name !== "practice";
+  if (name === "practice") { $("btnMute").setAttribute("aria-pressed", String(!S.voiceOn)); $("muteLabel").textContent = S.voiceOn ? "소리 끄기" : "소리 켜기"; }
+  if (name === "setup") {
+    $("barSub").textContent = "아주대 행정학과 · 생기부 질문";
+  }
+}
+
+/* ---------- speech ---------- */
+const VOICE_PROFILE = {
+  male:   { label: "남성 면접관", pitch: 0.80, rate: 0.96, cls: "pill--male" },
+  female: { label: "여성 면접관", pitch: 1.18, rate: 1.00, cls: "pill--female" },
+};
+// 기기에 한국어 남성/여성 음성이 따로 있으면 이름으로 구분해 고른다.
+const MALE_HINT = /(injun|gwangsu|minsu|junho|jihun|seojun|\bmale\b|\bman\b|남성|남자|인준|광수|민수|상현|동현|준호|지훈|서준|현우)/i;
+const FEMALE_HINT = /(yuna|heami|sora|sunhi|nari|jimin|seoyeon|\bfemale\b|\bwoman\b|여성|여자|유나|하미|소라|순희|나리|지민|서연|수진|미소|예린)/i;
+
+let koVoice = null;
+function koVoices() {
+  if (!("speechSynthesis" in window)) return [];
+  let all = [];
+  try { all = window.speechSynthesis.getVoices() || []; } catch (e) { all = []; }
+  return all.filter((v) => /^ko([-_]|$)/i.test(v.lang || ""));
+}
+function pickVoice(gender) {
+  const list = koVoices();
+  if (!list.length) return null;
+  if (gender) {
+    const male = list.filter((v) => MALE_HINT.test(v.name || "") && !FEMALE_HINT.test(v.name || ""));
+    const female = list.filter((v) => FEMALE_HINT.test(v.name || "") && !MALE_HINT.test(v.name || ""));
+    const pool = gender === "male" ? male : female;
+    if (pool.length) return pool[Math.floor(Math.random() * pool.length)];
+  }
+  return null;
+}
+function pickVoiceThenRefresh() {
+  const list = koVoices();
+  if (!list.length) return;
+  koVoice = list.find((v) => /google|yuna|heami|sora|injun/i.test(v.name || "")) || list[0];
+}
+if ("speechSynthesis" in window) {
+  pickVoiceThenRefresh();
+  window.speechSynthesis.onvoiceschanged = pickVoiceThenRefresh;
+  setTimeout(pickVoiceThenRefresh, 700);   // iOS: 목록이 늦게 차는 경우 대비
+}
+
+/* iOS Safari는 사용자 탭 안에서 한 번 말을 시켜야 이후 자동 읽기가 열린다. */
+let speechWarmed = false;
+function warmUpSpeech() {
+  if (speechWarmed) return;
+  if (!("speechSynthesis" in window)) return;
+  speechWarmed = true;
+  try {
+    const synth = window.speechSynthesis;
+    try { synth.getVoices(); } catch (e) {}
+    const u = new SpeechSynthesisUtterance("");
+    u.volume = 0;
+    u.lang = "ko-KR";
+    try { synth.speak(u); } catch (e) {}
+  } catch (e) {}
+}
+
+let readTimers = [];
+let readPolls = [];
+let readToken = 0;
+function clearReadTimers() {
+  readTimers.forEach((t) => clearTimeout(t)); readTimers = [];
+  readPolls.forEach((p) => clearInterval(p)); readPolls = [];
+}
+function cancelSpeech() {
+  readToken += 1;                 // 진행 중이던 읽기 콜백 무효화
+  clearReadTimers();
+  try { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); } catch (e) {}
+}
+
+function speak(text, onDone, genderOverride) {
+  cancelSpeech();
+  const my = readToken;
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    if (my !== readToken) return;  // 다른 질문으로 넘어갔으면 무시
+    clearReadTimers();
+    if (onDone) onDone();
+  };
+
+  if (!S.voiceOn || !("speechSynthesis" in window)) {
+    const g = genderOverride || S.gender || "female";
+    S.voiceInfo = { gender: g, pitch: (VOICE_PROFILE[g] || VOICE_PROFILE.female).pitch, rate: (VOICE_PROFILE[g] || VOICE_PROFILE.female).rate, voice: "" };
+    readTimers.push(setTimeout(finish, 1200));   // 음성 없이 1.2초 뒤 시작
+    return;
+  }
+  const synth = window.speechSynthesis;
+  let voices = [];
+  try { voices = synth.getVoices() || []; } catch (e) { voices = []; }
+  const gender = genderOverride || S.gender || "female";
+  const prof = VOICE_PROFILE[gender] || VOICE_PROFILE.female;
+  const matched = pickVoice(gender);          // 기기에 해당 성별 음성이 있으면 그것으로
+  const baseVoice = matched || koVoice;
+  try { if (synth.paused) synth.resume(); } catch (e) {}   // iOS에서 멈춰 있던 엔진 깨우기
+
+  let started = false;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "ko-KR";
+    u.rate = prof.rate;
+    u.pitch = matched ? 1.0 : prof.pitch;     // 음성이 하나뿐인 기기는 pitch로 남/여를 구분
+    if (baseVoice) u.voice = baseVoice;
+    S.voiceInfo = { gender: gender, pitch: u.pitch, rate: u.rate, voice: baseVoice ? baseVoice.name : "" };
+    u.onstart = () => { started = true; };
+    u.onend = () => finish();
+    u.onerror = () => finish();
+    synth.speak(u);
+  } catch (e) {
+    readTimers.push(setTimeout(finish, 1200));
+    return;
+  }
+
+  // 음성 엔진이 조용히 실패해도 타이머는 반드시 시작되도록 감시
+  const t0 = performance.now();
+  const watch = setInterval(() => {
+    const el = performance.now() - t0;
+    let speaking = false;
+    try { speaking = synth.speaking; } catch (e) {}
+    if (finished) { clearInterval(watch); return; }
+    if (!started) {
+      if (el > (voices.length ? 2400 : 1800) && !speaking) { noteVoiceFallback(); finish(); clearInterval(watch); }
+      else if (el > 9000) { finish(); clearInterval(watch); }
+      return;
+    }
+    if (!speaking && el > 700) { finish(); clearInterval(watch); return; }
+    if (el > 5000 + text.length * 400) { finish(); clearInterval(watch); }
+  }, 250);
+  readPolls.push(watch);
+}
+let voiceNoteShown = false;
+function noteVoiceFallback() {
+  if (voiceNoteShown) return;
+  voiceNoteShown = true;
+  toast("음성 지원이 없어 타이머로 진행합니다");
+}
+
+/* ---------- camera ---------- */
+let camWaitTimer = 0;
+/* iPadOS Safari는 제약조건이 빡빡하면 실패할 수 있어 단계적으로 다시 시도한다. */
+async function getUserMediaVideo() {
+  const md = navigator.mediaDevices;
+  if (!md || !md.getUserMedia) { const e = new Error("unsupported"); e.name = "NotSupportedError"; throw e; }
+  const tries = [
+    { audio: false, video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 1280 } } },
+    { audio: false, video: { facingMode: "user" } },
+    { audio: false, video: true },
+  ];
+  let last = null;
+  for (const c of tries) {
+    try { return await md.getUserMedia(c); }
+    catch (err) {
+      last = err;
+      const n = (err && err.name) || "";
+      if (n !== "OverconstrainedError" && n !== "TypeError") break;
+    }
+  }
+  throw last;
+}
+async function startCamera() {
+  const wrap = $("camWrap");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    camFail("이 브라우저에서는 카메라를 쓸 수 없어요");
+    return;
+  }
+  clearTimeout(camWaitTimer);
+  camWaitTimer = setTimeout(() => {
+    if (!S.camOk) camFail("카메라 권한을 확인해 주세요");
+  }, 3500);
+  try {
+    stopCamera();
+    const stream = await getUserMediaVideo();
+    S.camStream = stream;
+    const v = $("cam");
+    v.srcObject = stream;
+    try { await v.play(); } catch (e) {}
+    wrap.classList.add("is-live");
+    $("camNote").hidden = true;
+    $("btnCamRetry").hidden = true;
+    clearTimeout(camWaitTimer);
+    S.camOk = true;
+  } catch (err) {
+    camFail("카메라를 켤 수 없어요", (err && err.name) || "");
+  }
+}
+function camFail(msg, errName) {
+  S.camOk = false;
+  $("camWrap").classList.remove("is-live");
+  $("camEmptyText").textContent = msg;
+  $("btnCamRetry").hidden = false;
+  const note = $("camNote");
+  const n = errName || "";
+  const tip = (n === "NotAllowedError" || n === "SecurityError")
+    ? "브라우저 주소창의 카메라 아이콘에서 <b>허용</b>으로 바꾼 뒤 다시 시도해 보세요. 아이폰·아이패드는 <b>설정 &gt; Safari &gt; 카메라</b>에서 켤 수 있어요."
+    : (n === "NotReadableError" || n === "TrackStartError")
+    ? "다른 앱이 카메라를 쓰고 있는지 확인하고 카메라 앱을 닫은 뒤 다시 시도해 보세요."
+    : "브라우저 주소창의 카메라 권한을 확인하고 다시 시도해 보세요.";
+  note.innerHTML = "<b>카메라 없이 연습 중</b> — " + tip + " 질문과 타이머는 그대로 진행됩니다.";
+  note.hidden = false;
+}
+function stopCamera() {
+  if (S.camStream) {
+    S.camStream.getTracks().forEach((t) => t.stop());
+    S.camStream = null;
+  }
+  const v = $("cam");
+  if (v.srcObject) v.srcObject = null;
+  $("camWrap").classList.remove("is-live");
+  S.camOk = false;
+}
+
+/* ---------- wake lock ---------- */
+async function keepAwake() {
+  try {
+    if ("wakeLock" in navigator && !S.wakeLock) {
+      S.wakeLock = await navigator.wakeLock.request("screen");
+      S.wakeLock.addEventListener("release", () => { S.wakeLock = null; });
+    }
+  } catch (e) {}
+}
+function releaseAwake() {
+  try { if (S.wakeLock) S.wakeLock.release(); } catch (e) {}
+  S.wakeLock = null;
+}
+
+/* ---------- session ---------- */
+function startSession() {
+  stopCamTest();          // 설정 화면 미리보기는 끄고
+  warmUpSpeech();         // iOS Safari: 이 탭(사용자 제스처) 안에서 음성 엔진을 깨운다
+  S.queue = buildQueue();
+  S.idx = -1;
+  S.records = [];
+  S.phase = "idle";
+  show("practice");
+  $("barSub").textContent = scopeLabel() + " · " + S.queue.length + "문항";
+  startCamera();
+  keepAwake();
+  nextQuestion();
+}
+
+function scopeLabel() {
+  return S.scope === "top35" ? "아주대 TOP35" : S.scope === "set30" ? "생기부 30선" : "전체";
+}
+
+function currentEntry() { return S.queue[S.idx] || null; }
+function currentText(entry) { return entry.kind === "tail" ? entry.item.tail : entry.item.q; }
+
+function nextQuestion() {
+  cancelSpeech();
+  stopTick();
+  if (S.idx + 1 >= S.queue.length) { finishSession(); return; }
+  S.idx += 1;
+  const entry = currentEntry();
+  const q = entry.item;
+  const text = currentText(entry);
+
+  // render
+  $("qKind").textContent = entry.kind === "tail" ? "꼬리질문" : "질문";
+  $("qKind").className = "pill " + (entry.kind === "tail" ? "pill--tail" : "pill--main");
+  $("qIndex").textContent = (S.idx + 1) + " / " + S.queue.length;
+  $("qSetName").textContent = q.set === "top35" ? "TOP35" : "30선";
+  $("qTag").textContent = q.tag;
+  $("qText").textContent = text;
+  const parent = $("qParent");
+  if (entry.kind === "tail") {
+    parent.hidden = false;
+    parent.textContent = "앞 질문: " + q.q;
+  } else {
+    parent.hidden = true;
+    parent.textContent = "";
+  }
+
+  // timer UI reset (질문 읽는 중)
+  S.phase = "reading";
+  $("tmLimit").textContent = mmss(S.limit);
+  $("elapsed").textContent = "00:00";
+  $("remaining").textContent = mmss(S.limit);
+  $("barFill").style.width = "0%";
+  $("timer").classList.remove("is-warn", "is-over");
+  $("tmHead").classList.add("live");
+  $("tmState").textContent = "질문을 읽는 중";
+  $("btnStop").disabled = false;
+
+  // 면접관 목소리 — 질문마다 남성·여성 50:50
+  S.gender = Math.random() < 0.5 ? "male" : "female";
+  const vp = VOICE_PROFILE[S.gender];
+  $("qVoice").textContent = vp.label;
+  $("qVoice").className = "pill " + vp.cls;
+
+  speak(text, () => {
+    if (S.phase === "reading") startAnswer();
+  });
+}
+
+function startAnswer() {
+  if (S.phase !== "reading") return;
+  S.phase = "answering";
+  S.startedAt = performance.now();
+  $("tmState").textContent = "답변 중";
+  $("tmHead").classList.add("live");
+  stopTick();
+  S.tickId = setInterval(tick, 100);
+  tick();
+}
+
+function tick() {
+  const el = (performance.now() - S.startedAt) / 1000;
+  const used = Math.min(el, S.limit);
+  const left = Math.max(0, S.limit - el);
+  $("elapsed").textContent = mmss(used);
+  $("remaining").textContent = mmss(left);
+  const pct = Math.min(100, (used / S.limit) * 100);
+  $("barFill").style.width = pct + "%";
+  const t = $("timer");
+  t.classList.toggle("is-warn", pct >= 70 && pct < 92);
+  t.classList.toggle("is-over", pct >= 92);
+  if (el >= S.limit) {
+    stopTick();
+    record(el, "auto");
+    S.phase = "idle";
+    nextQuestion();
+  }
+}
+
+function stopTick() {
+  if (S.tickId) { clearInterval(S.tickId); S.tickId = 0; }
+}
+
+function elapsedNow() {
+  return S.phase === "answering" && S.startedAt ? (performance.now() - S.startedAt) / 1000 : 0;
+}
+
+function record(sec, how) {
+  const entry = currentEntry();
+  if (!entry) return;
+  const q = entry.item;
+  S.records.push({
+    n: S.records.length + 1,
+    kind: entry.kind,
+    set: q.set,
+    no: q.no,
+    tag: q.tag,
+    text: currentText(entry),
+    seconds: Math.min(S.limit, Math.max(0, Math.round(sec))),
+    how,                                  // auto | stop | skip
+  });
+}
+
+function stopAndNext() {
+  if (S.phase === "reading") {
+    record(0, "skip");
+  } else if (S.phase === "answering") {
+    record(elapsedNow(), "stop");
+  } else {
+    return;
+  }
+  S.phase = "idle";
+  cancelSpeech();
+  stopTick();
+  nextQuestion();
+}
+
+function finishSession() {
+  // 방금 넘어와서 답변을 시작하지 않은 문항(3초 미만)은 기록에 남기지 않음
+  if (S.phase === "answering" && elapsedNow() >= 3) record(elapsedNow(), "stop");
+  S.phase = "done";
+  cancelSpeech();
+  stopTick();
+  stopCamera();
+  releaseAwake();
+  renderResult();
+  show("result");
+}
+
+/* ---------- result ---------- */
+function renderResult() {
+  const rs = S.records;
+  const total = rs.reduce((a, r) => a + r.seconds, 0);
+  const full = rs.filter((r) => r.how === "auto").length;
+  $("sumCount").textContent = rs.length;
+  $("sumTotal").textContent = mmss(total);
+  $("sumAvg").textContent = rs.length ? mmss(total / rs.length) : "00:00";
+  $("sumFull").textContent = full;
+  $("resScope").textContent = scopeLabel() + " · " + mmss(S.limit) + " 기준";
+  $("resKicker").textContent = rs.length ? "오늘의 연습 기록" : "연습 기록";
+  $("resTitle").textContent = rs.length ? rs.length + "개 질문에 답했어요" : "아직 기록이 없어요";
+
+  const list = $("recList");
+  list.innerHTML = "";
+  rs.forEach((r) => {
+    const row = document.createElement("div");
+    row.className = "rec" + (r.kind === "tail" ? " rec-tail" : "");
+    const badge = r.how === "auto" ? '<span class="badge badge--auto">시간 다 채움</span>'
+                : r.how === "skip" ? '<span class="badge badge--skip">건너뜀</span>'
+                : '<span class="badge badge--stop">스탑</span>';
+    row.innerHTML =
+      '<div class="rec-no">' + r.n + '</div>' +
+      '<div class="rec-main">' +
+        '<div class="rec-tag">' + (r.kind === "tail" ? "꼬리질문 · " : "") + escapeHtml(r.tag) + '</div>' +
+        '<div class="rec-q">' + escapeHtml(r.text) + '</div>' +
+      '</div>' +
+      '<div class="rec-side"><div class="rec-time">' + mmss(r.seconds) + '</div>' + badge + '</div>';
+    list.appendChild(row);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ---------- setup wiring ---------- */
+function syncSetupUI() {
+  $("statTotal").textContent = TOTALS.all;
+  $("segAll").textContent = TOTALS.all + "문항";
+  document.querySelectorAll('input[name="scope"]').forEach((r) => { r.checked = r.value === S.scope; });
+  $("swTail").setAttribute("aria-checked", String(S.includeTail));
+  const tailOff = S.scope === "top35";
+  $("swTail").disabled = tailOff;
+  $("tailSub").textContent = tailOff
+    ? "TOP35에는 꼬리질문이 없습니다"
+    : (S.includeTail ? "질문 답변 뒤에 꼬리질문이 이어집니다" : "기본 질문만 출제합니다");
+  $("swVoice").setAttribute("aria-checked", String(S.voiceOn));
+  document.querySelectorAll(".chip-opt").forEach((b) => {
+    b.setAttribute("aria-pressed", String(Number(b.dataset.limit) === S.limit));
+  });
+  $("tmLimit").textContent = mmss(S.limit);
+}
+
+document.querySelectorAll('input[name="scope"]').forEach((r) => {
+  r.addEventListener("change", () => { if (r.checked) { S.scope = r.value; syncSetupUI(); } });
+});
+$("swTail").addEventListener("click", () => { S.includeTail = !S.includeTail; syncSetupUI(); });
+$("swVoice").addEventListener("click", () => {
+  S.voiceOn = !S.voiceOn;
+  if (!S.voiceOn) cancelSpeech();
+  syncSetupUI();
+});
+document.querySelectorAll(".chip-opt").forEach((b) => {
+  b.addEventListener("click", () => { S.limit = Number(b.dataset.limit); syncSetupUI(); });
+});
+
+$("btnStart").addEventListener("click", startSession);
+$("btnStop").addEventListener("click", stopAndNext);
+$("btnEndTop").addEventListener("click", finishSession);
+$("btnAgain").addEventListener("click", startSession);
+$("btnSetup").addEventListener("click", () => {
+  show("setup"); syncSetupUI(); $("barSub").textContent = "아주대 행정학과 · 생기부 질문";
+});
+$("btnCopy").addEventListener("click", copyRecords);
+
+$("btnRepeat").addEventListener("click", () => {
+  const entry = currentEntry();
+  if (!entry) return;
+  if (!S.voiceOn || !("speechSynthesis" in window)) { toast("음성이 꺼져 있어요"); return; }
+  // 타이머는 그대로 두고 질문만 다시 읽음 (아직 읽는 중이면 읽은 뒤 타이머 시작)
+  speak(currentText(entry), () => { if (S.phase === "reading") startAnswer(); });
+  toast("질문을 다시 읽어 드려요");
+});
+
+$("btnMute").addEventListener("click", () => {
+  S.voiceOn = !S.voiceOn;
+  $("btnMute").setAttribute("aria-pressed", String(!S.voiceOn));
+  $("muteLabel").textContent = S.voiceOn ? "소리 끄기" : "소리 켜기";
+  if (!S.voiceOn) {
+    cancelSpeech();
+    if (S.phase === "reading") startAnswer();   // 읽기를 멈춰도 타이머는 진행
+  }
+});
+
+$("btnMirror").addEventListener("click", () => {
+  S.mirror = !S.mirror;
+  $("camWrap").classList.toggle("no-mirror", !S.mirror);
+  $("camWrap").classList.toggle("is-mirror", S.mirror);
+  $("btnMirror").setAttribute("aria-pressed", String(S.mirror));
+});
+
+$("btnCamRetry").addEventListener("click", startCamera);
+
+async function copyRecords() {
+  const rs = S.records;
+  if (!rs.length) { toast("복사할 기록이 없어요"); return; }
+  const total = rs.reduce((a, r) => a + r.seconds, 0);
+  const lines = rs.map((r) => r.n + ". " + mmss(r.seconds) + " · " + r.tag + " · " + r.text);
+  const text = "[셀카 랜덤 모의면접 · " + scopeLabel() + "]\n" +
+    "질문 " + rs.length + "개 · 총 " + mmss(total) + " · 평균 " + mmss(total / rs.length) + "\n\n" +
+    lines.join("\n");
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("기록을 복사했어요");
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); toast("기록을 복사했어요"); }
+    catch (err) { toast("복사가 막혀 있어요"); }
+    ta.remove();
+  }
+}
+
+
+/* =====================================================================
+   비밀번호 잠금 (4자리) — 틀리면 부드럽게 안내, 맞으면 sessionStorage에 기억
+   비밀번호를 바꾸려면 브라우저 콘솔에서 hashLock("새4자리") 값을 LOCK.hash에 넣는다.
+   ===================================================================== */
+const LOCK = { hash: 540393759, key: "selfieInterview.auth.v2", len: 4 };  // hashLock("0604")
+let lockBuf = "";
+let lockBusy = false;
+let unlockedMem = false;
+
+function hashLock(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+function lockAuthed() {
+  if (unlockedMem) return true;
+  try { return sessionStorage.getItem(LOCK.key) === "1"; } catch (e) { return false; }
+}
+function lockRemember() {
+  unlockedMem = true;
+  try { sessionStorage.setItem(LOCK.key, "1"); } catch (e) {}
+}
+function lockRender() {
+  const dots = document.querySelectorAll("#lockDots i");
+  for (let i = 0; i < dots.length; i++) dots[i].classList.toggle("on", i < lockBuf.length);
+}
+function lockMsg(text, kind) {
+  const el = $("lockMsg");
+  el.textContent = text;
+  el.className = "lock-msg" + (kind ? " is-" + kind : "");
+}
+function lockReset(msg) {
+  lockBuf = "";
+  lockRender();
+  lockMsg(msg || "숫자를 눌러 입력해 주세요");
+}
+function lockPress(k) {
+  if (lockBusy) return;
+  if (k === "del") {
+    lockBuf = lockBuf.slice(0, -1);
+    lockRender();
+    if (!lockBuf.length) lockMsg("");
+    return;
+  }
+  if (k === "clear") { lockReset(""); return; }
+  if (!/^[0-9]$/.test(k)) return;
+  if (lockBuf.length >= LOCK.len) return;
+  lockBuf += k;
+  lockRender();
+  if (lockBuf.length === LOCK.len) lockSubmit();
+}
+function lockSubmit() {
+  if (lockBusy) return;
+  lockBusy = true;
+  const dots = $("lockDots");
+  const card = $("lockCard");
+  if (hashLock(lockBuf) === LOCK.hash) {
+    dots.classList.add("is-ok");
+    lockMsg("비밀번호가 맞습니다", "ok");
+    lockRemember();
+    setTimeout(function () {
+      lockBusy = false;
+      dots.classList.remove("is-ok");
+      lockBuf = "";
+      lockRender();
+      lockMsg("숫자를 눌러 입력해 주세요");
+      show("setup");
+      syncSetupUI();
+    }, 280);
+    return;
+  }
+  card.classList.add("is-shake");
+  dots.classList.add("is-err");
+  lockMsg("비밀번호가 맞지 않아요. 다시 입력해 주세요.", "err");
+  setTimeout(function () {
+    card.classList.remove("is-shake");
+    dots.classList.remove("is-err");
+    lockBusy = false;
+    lockReset("숫자를 눌러 입력해 주세요");
+  }, 640);
+}
+$("keypad").addEventListener("click", function (e) {
+  const b = e.target.closest(".key");
+  if (b) lockPress(b.dataset.k);
+});
+document.addEventListener("keydown", function (e) {
+  if (S.screen !== "lock") return;
+  if (/^[0-9]$/.test(e.key)) { e.preventDefault(); lockPress(e.key); }
+  else if (e.key === "Backspace") { e.preventDefault(); lockPress("del"); }
+  else if (e.key === "Escape") { e.preventDefault(); lockPress("clear"); }
+});
+
+/* =====================================================================
+   카메라 권한 확인 · 미리보기 테스트
+   ===================================================================== */
+let testStream = null;
+function camTestState(text, kind) {
+  $("camTestState").className = "camtest-state" + (kind ? " is-" + kind : "");
+  $("camTestMsg").textContent = text;
+}
+async function camTestPerm() {
+  const tag = $("camPermTag");
+  try {
+    if (!navigator.permissions || !navigator.permissions.query) {
+      tag.textContent = "권한 자동 확인 불가";
+      tag.dataset.state = "unknown";
+      return "unknown";
+    }
+    const st = await navigator.permissions.query({ name: "camera" });
+    const map = { granted: "카메라 허용됨", prompt: "권한 묻는 중", denied: "카메라 차단됨" };
+    tag.textContent = map[st.state] || "권한 확인 불가";
+    tag.dataset.state = st.state || "unknown";
+    return st.state;
+  } catch (e) {          // Safari는 camera 권한 조회를 지원하지 않을 수 있다
+    tag.textContent = "권한 자동 확인 불가";
+    tag.dataset.state = "unknown";
+    return "unknown";
+  }
+}
+function stopCamTest() {
+  if (testStream) {
+    testStream.getTracks().forEach(function (t) { t.stop(); });
+    testStream = null;
+  }
+  const v = $("camTestVideo");
+  if (v && v.srcObject) v.srcObject = null;
+  const prev = $("camTestPrev");
+  if (prev) prev.classList.remove("on");
+}
+async function camTestStart() {
+  const btn = $("btnCamTest");
+  stopCamTest();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    camTestState("이 브라우저에서는 카메라를 쓸 수 없어요. https 주소에서 최신 사파리·크롬으로 열어 주세요.", "err");
+    return;
+  }
+  btn.disabled = true;
+  camTestState("카메라를 켜 보는 중이에요…", "warn");
+  const perm = await camTestPerm();
+  try {
+    const stream = await getUserMediaVideo();
+    testStream = stream;
+    const v = $("camTestVideo");
+    v.srcObject = stream;
+    v.muted = true;
+    try { await v.play(); } catch (e) {}
+    $("camTestPrev").classList.add("on");
+    const track = stream.getVideoTracks()[0];
+    const st = (track && track.getSettings) ? track.getSettings() : {};
+    camTestState("카메라가 정상 작동해요" + (st.width ? " (" + st.width + "×" + st.height + ")" : "") + " · 이제 면접을 시작해도 됩니다.", "ok");
+    $("camTestBtnLabel").textContent = "다시 확인";
+  } catch (err) {
+    const n = (err && err.name) || "";
+    if (n === "NotAllowedError" || n === "SecurityError" || perm === "denied") {
+      camTestState("카메라 권한이 막혀 있어요. 주소창 왼쪽 아이콘에서 카메라를 ‘허용’으로 바꾼 뒤 다시 확인해 주세요. 아이폰·아이패드는 설정 > Safari > 카메라에서 켤 수 있어요.", "err");
+    } else if (n === "NotFoundError" || n === "DevicesNotFoundError") {
+      camTestState("이 기기에서 카메라를 찾지 못했어요. 다른 앱이 카메라를 쓰고 있지 않은지 확인해 주세요.", "err");
+    } else if (n === "NotReadableError" || n === "TrackStartError") {
+      camTestState("카메라가 다른 앱에서 사용 중이에요. 카메라 앱을 닫고 다시 시도해 주세요.", "err");
+    } else if (n === "NotSupportedError") {
+      camTestState("카메라 기능을 지원하지 않는 브라우저예요. https 주소에서 열어 주세요.", "err");
+    } else {
+      camTestState("카메라를 켜지 못했어요" + (n ? " (" + n + ")" : "") + ". 잠시 뒤 다시 시도해 주세요.", "err");
+    }
+    $("camTestBtnLabel").textContent = "카메라 권한 확인 · 미리보기";
+  } finally {
+    btn.disabled = false;
+  }
+}
+$("btnCamTest").addEventListener("click", camTestStart);
+$("btnCamTestClose").addEventListener("click", function () { stopCamTest(); camTestState("미리보기를 껐어요. 다시 확인할 수 있습니다.", ""); });
+
+/* ---------- keyboard (desktop practice) ---------- */
+document.addEventListener("keydown", (e) => {
+  if (S.screen !== "practice") return;
+  if (e.code === "Space" || e.code === "Enter") {
+    if (document.activeElement && /BUTTON/.test(document.activeElement.tagName)) return;
+    e.preventDefault();
+    stopAndNext();
+  }
+});
+
+/* ---------- url quick-check (?sec=10&scope=all&tail=0) ---------- */
+(function applyQuery() {
+  const p = new URLSearchParams(location.search);
+  const sec = Number(p.get("sec"));
+  if (sec >= 5 && sec <= 600) S.limit = sec;
+  const sc = p.get("scope");
+  if (sc === "top35" || sc === "set30" || sc === "all") S.scope = sc;
+  if (p.get("tail") === "0") S.includeTail = false;
+  syncSetupUI();
+})();
+
+/* ---------- boot ---------- */
+(function boot() {
+  syncSetupUI();
+  if (lockAuthed()) { show("setup"); }
+  else { show("lock"); lockReset(""); }
+  camTestPerm();
+})();
+
+/* ---------- test hook (읽기 전용) ---------- */
+window.__interview = {
+  snapshot() {
+    return {
+      screen: S.screen, phase: S.phase, idx: S.idx, limit: S.limit, scope: S.scope,
+      queue: S.queue.length, records: S.records.map((r) => ({ ...r })),
+      camOk: S.camOk, question: (currentEntry() ? currentText(currentEntry()) : ""),
+      elapsed: elapsedNow(),
+      gender: S.gender, voice: S.voiceInfo,
+      badge: $("qVoice") ? $("qVoice").textContent : "",
+      unlocked: S.screen !== "lock",
+      camTest: {
+        on: $("camTestPrev").classList.contains("on"),
+        state: $("camTestState").className,
+        msg: $("camTestMsg").textContent,
+        perm: $("camPermTag").textContent,
+      },
+    };
+  },
+  hash: hashLock,
+};
+</script>
+</body>
+</html>
